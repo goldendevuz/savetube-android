@@ -751,15 +751,15 @@
     <string name="notifications_empty_body">You\'re all caught up! New updates from your subscriptions will appear here.</string>
     <!-- Settings Screen -->
     <string name="settings_title">Settings</string>
-    <string name="settings_flow_engine_header">Flow Engine</string>
+    <string name="settings_flow_engine_header">SaveTube Engine</string>
     <string name="settings_active_learning">ACTIVE LEARNING</string>
-    <string name="settings_reset_brain_title">Reset Flow Personality?</string>
-    <string name="settings_reset_brain_body">This erases your Flow Brain profile.\n\n• Learned topics are forgotten.\n• Personality traits reset.\n• Recommendations go back to default.\n\nThis cannot be undone.</string>
+    <string name="settings_reset_brain_title">Reset SaveTube Personality?</string>
+    <string name="settings_reset_brain_body">This erases your SaveTube Brain profile.\n\n• Learned topics are forgotten.\n• Personality traits reset.\n• Recommendations go back to default.\n\nThis cannot be undone.</string>
     <string name="settings_reset_everything">Reset Everything</string>
     <string name="settings_analyzing_interactions">Analyzing your interactions...</string>
     <string name="settings_view_analytics">View Analytics</string>
-    <!-- Deep Flow Mode -->
-    <string name="deep_flow_mode_title">Deep Flow Mode</string>
+    <!-- Deep SaveTube Mode -->
+    <string name="deep_flow_mode_title">Deep SaveTube Mode</string>
     <string name="deep_flow_mode_subtitle">Pause learning and search history</string>
     <string name="deep_flow_learning_paused">LEARNING PAUSED</string>
     <string name="deep_flow_expires_in">Expires in %s</string>
@@ -767,18 +767,18 @@
     <string name="deep_flow_expire_duration_subtitle">Learning resumes automatically after %s</string>
     <string name="deep_flow_save_history_title">Save to watch history</string>
     <string name="deep_flow_save_history_subtitle">Keep watch history without teaching recommendations</string>
-    <string name="deep_flow_scrobble_title">Scrobble during Deep Flow</string>
-    <string name="taste_learning_paused">Deep Flow is on, learning is paused</string>
+    <string name="deep_flow_scrobble_title">Scrobble during Deep SaveTube</string>
+    <string name="taste_learning_paused">Deep SaveTube is on, learning is paused</string>
     <string name="deep_flow_scrobble_subtitle">Keep sending listens to Last.fm, Libre.fm and ListenBrainz</string>
     <string name="deep_flow_on_search_title">Show on search</string>
-    <string name="deep_flow_on_search_subtitle">A Deep Flow switch above recent searches</string>
-    <string name="deep_flow_long_press_hint">Long-press the SaveTube logo or name on Home to switch Deep Flow</string>
+    <string name="deep_flow_on_search_subtitle">A Deep SaveTube switch above recent searches</string>
+    <string name="deep_flow_long_press_hint">Long-press the SaveTube logo or name on Home to switch Deep SaveTube</string>
     <string name="deep_flow_dialog_title">Pause Duration</string>
     <string name="deep_flow_dialog_body">How long should learning stay paused?</string>
-    <string name="deep_flow_enabled_message">Deep Flow enabled</string>
-    <string name="deep_flow_disabled_message">Deep Flow disabled</string>
-    <string name="deep_flow_expired_message">Deep Flow timer ended</string>
-    <string name="deep_flow_active_until_disabled">Deep Flow stays active until you turn it off</string>
+    <string name="deep_flow_enabled_message">Deep SaveTube enabled</string>
+    <string name="deep_flow_disabled_message">Deep SaveTube disabled</string>
+    <string name="deep_flow_expired_message">Deep SaveTube timer ended</string>
+    <string name="deep_flow_active_until_disabled">Deep SaveTube stays active until you turn it off</string>
     <string name="deep_flow_duration_never">Never</string>
     <string name="deep_flow_duration_1h">1 hour</string>
     <string name="deep_flow_duration_2h">2 hours</string>
@@ -945,9 +945,9 @@
     <string name="app_icon_picker_subtitle">Choose a launcher icon style. The change takes effect immediately and the launcher will briefly refresh.</string>
     <string name="app_icon_picker_warning">Changing the icon may remove SaveTube from your home screen for a moment. Add it back from the app drawer if needed.</string>
     <string name="app_icon_apply_toast">Icon updated - your launcher will refresh</string>
-    <string name="icon_name_flow_red">Flow Red</string>
-    <string name="icon_name_flow_light">Flow Light</string>
-    <string name="icon_name_flow_play">Flow Play</string>
+    <string name="icon_name_flow_red">SaveTube Red</string>
+    <string name="icon_name_flow_light">SaveTube Light</string>
+    <string name="icon_name_flow_play">SaveTube Play</string>
     <string name="icon_name_amoled">AMOLED Dark</string>
     <string name="icon_name_monochrome">Monochrome</string>
     <string name="icon_name_ghost">Ghost</string>
@@ -1156,7 +1156,7 @@
     <string name="theme_desc_sky_blue">A light, airy palette with open sky blues.</string>
     <string name="theme_name_cream_paper">Cream Paper</string>
     <string name="theme_desc_cream_paper">Warm paper tones for cosy daytime reading.</string>
-    <string name="theme_name_classic_dark">Flow Default</string>
+    <string name="theme_name_classic_dark">SaveTube Default</string>
     <string name="theme_desc_classic_dark">The original SaveTube palette with the YouTube red accent.</string>
     <string name="theme_name_true_black">True Black</string>
     <string name="theme_desc_true_black">Pure OLED</string>
@@ -1290,7 +1290,7 @@
     <string name="content_settings_home_subscriptions_subtitle">Mix videos from channels you follow into Home</string>
     <string name="settings_section_watch_history">Watch history</string>
     <string name="pause_watch_history_title">Pause watch history</string>
-    <string name="pause_watch_history_subtitle">Stop saving what you watch. Deep Flow also pauses learning</string>
+    <string name="pause_watch_history_subtitle">Stop saving what you watch. Deep SaveTube also pauses learning</string>
     <string name="content_settings_show_app_logo_title">Show app logo icon</string>
     <string name="content_settings_show_app_logo_subtitle">Show the SaveTube logo in the Home top bar</string>
     <string name="content_settings_header_shorts">Shorts</string>
@@ -1921,12 +1921,12 @@
     </plurals>
     <!-- Import Data Screen -->
     <string name="import_data_title">Import Data</string>
-    <string name="import_flow_backup_success">Flow backup imported successfully</string>
-    <string name="import_flow_backup_failed_template">Failed to import Flow backup: %1$s</string>
+    <string name="import_flow_backup_success">SaveTube backup imported successfully</string>
+    <string name="import_flow_backup_failed_template">Failed to import SaveTube backup: %1$s</string>
     <string name="import_newpipe_failed_template">Failed to import NewPipe backup: %1$s</string>
     <string name="import_youtube_failed_template">Failed to import YouTube backup: %1$s</string>
-    <string name="import_flow_backup_item_title">Import Flow Backup</string>
-    <string name="import_flow_backup_desc">Restore your history, settings, and subscriptions from a Flow backup file.</string>
+    <string name="import_flow_backup_item_title">Import SaveTube Backup</string>
+    <string name="import_flow_backup_desc">Restore your history, settings, and subscriptions from a SaveTube backup file.</string>
     <string name="import_from_newpipe">Import from NewPipe</string>
     <string name="import_from_newpipe_desc">Import subscriptions from a NewPipe export file (JSON).</string>
     <string name="import_from_libretube">Import from LibreTube</string>
@@ -2205,7 +2205,7 @@
     <string name="onboarding_step_interests">Interests</string>
     <string name="onboarding_step_channels">Channels</string>
     <string name="onboarding_step_import">Import</string>
-    <string name="onboarding_import_source_flow">Flow backup</string>
+    <string name="onboarding_import_source_flow">SaveTube backup</string>
     <string name="onboarding_import_source_youtube">YouTube</string>
     <string name="onboarding_import_footnote">Everything here is optional. Settings has the same imports.</string>
     <string name="onboarding_import_done">Imported</string>
@@ -2268,7 +2268,7 @@
     <string name="category_creative">Creative</string>
     <string name="category_science_nature">Science &amp; Nature</string>
     <string name="category_news_current_events">News &amp; Current Events</string>
-    <!-- Flow Personality Screen -->
+    <!-- SaveTube Personality Screen -->
     <string name="flow_control_center">SaveTube Control Center</string>
     <string name="action_refresh">Refresh</string>
     <string name="loading_neural_matrix">Loading Neural Matrix...</string>
@@ -2843,12 +2843,12 @@
     <string name="checking_for_updates">Checking for updates…</string>
     <string name="flow_is_up_to_date">SaveTube is up to date!</string>
     <string name="update_check_failed">Couldn\'t check for updates. Check your connection.</string>
-    <!-- Export / Import Flow Engine data (Settings + ImportDataScreen) -->
+    <!-- Export / Import SaveTube Engine data (Settings + ImportDataScreen) -->
     <string name="export_engine_data">Export Engine Profile</string>
     <string name="export_engine_data_subtitle">Back up your AI personality &amp; learning data</string>
     <string name="export_engine_success">Engine profile exported successfully</string>
     <string name="export_engine_failed">Failed to export engine profile</string>
-    <string name="import_engine_data">Import Flow Engine Data</string>
+    <string name="import_engine_data">Import SaveTube Engine Data</string>
     <string name="import_engine_data_desc">Restore your AI personality profile from a backup file</string>
     <string name="import_engine_success">Engine profile restored successfully</string>
     <string name="import_engine_failed">Failed to import engine profile</string>
@@ -4146,7 +4146,7 @@
     <string name="download_block_failed">Block %1$s failed: %2$s</string>
     <string name="import_migrate_description">Migrate your subscriptions and history from other platforms to SaveTube seamlessly.</string>
     <string name="import_backup_restore">Backup &amp; Restore</string>
-    <string name="import_manage_backups">Manage your Flow backups</string>
+    <string name="import_manage_backups">Manage your SaveTube backups</string>
     <string name="import_external_services">External Services</string>
     <string name="import_other_youtube_clients">Import from other YouTube clients</string>
     <string name="imported_successfully">%1$s imported successfully</string>
@@ -4633,7 +4633,7 @@
     <string name="diagnostics_engine_queries_none">None yet</string>
     <string name="taste_starter_searches">Starter searches</string>
     <string name="taste_starter_searches_detail">%1$s. Used until SaveTube learns what you watch.</string>
-    <!-- Flow Recap -->
+    <!-- SaveTube Recap -->
     <string name="recap_title">SaveTube Recap</string>
     <string name="recap_summary">What you watched and listened to, month by month</string>
     <string name="recap_keywords">wrapped, stats, statistics, recap, year in review, watch time, listening time, most watched, top artists</string>
