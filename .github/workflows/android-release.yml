@@ -1,0 +1,63 @@
+name: SaveTube Android release
+
+# Publishes the APKs of a finished "SaveTube Android APK" run as a GitHub Release, on GitHub's own
+# runner (so the large files never travel through a slow home connection).
+# Run it with: gh workflow run android-release.yml -f run_id=<run id> -f tag=v1.0.2 -f title="..." -f notes="..."
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: The id of the finished "SaveTube Android APK" run
+        required: true
+      tag:
+        description: The release tag, e.g. v1.0.2
+        required: true
+      title:
+        description: The release title
+        required: true
+      notes:
+        description: The release notes (Markdown)
+        required: true
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  release:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Download the APKs of the run
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p dl
+          gh run download "${{ inputs.run_id }}" --repo "${{ github.repository }}" --pattern 'SaveTube-android-*' --dir dl
+          find dl -name '*.apk' | sort
+
+      - name: Name the files and write the checksums
+        run: |
+          set -euo pipefail
+          version="${TAG#v}"
+          mkdir -p out
+          for f in $(find dl -name '*.apk'); do
+            case "$f" in
+              *arm64-v8a*) cp "$f" "out/SaveTube-$version-arm64-v8a.apk" ;;
+              *armeabi-v7a*) cp "$f" "out/SaveTube-$version-armeabi-v7a.apk" ;;
+              *universal*) cp "$f" "out/SaveTube-$version-universal.apk" ;;
+            esac
+          done
+          for kind in arm64-v8a armeabi-v7a universal; do test -f "out/SaveTube-$version-$kind.apk"; done
+          (cd out && sha256sum *.apk > "SaveTube-$version-android.sha256")
+          ls -la out
+        env:
+          TAG: ${{ inputs.tag }}
+
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NOTES: ${{ inputs.notes }}
+        run: |
+          printf '%s\n' "$NOTES" > notes.md
+          gh release create "${{ inputs.tag }}" out/* --repo "${{ github.repository }}" \
+            --target "${{ github.sha }}" --title "${{ inputs.title }}" --notes-file notes.md
