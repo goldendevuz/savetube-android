@@ -9,6 +9,7 @@ import io.github.aedev.flow.data.engagement.FeedInvalidationBus
 import io.github.aedev.flow.data.innertube.SubscriptionRefreshStage
 import io.github.aedev.flow.data.local.ChannelSubscription
 import io.github.aedev.flow.data.local.PlayerPreferences
+import io.github.aedev.flow.innertube.pages.channel.channelCounts
 import io.github.aedev.flow.data.local.SubscriptionRepository
 import io.github.aedev.flow.data.local.dao.SubscriptionGroupDao
 import io.github.aedev.flow.data.local.dao.WatchHistoryDao
@@ -35,6 +36,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
@@ -44,6 +46,7 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.withPermit
 import javax.inject.Inject
 import kotlinx.coroutines.channels.Channel as EventChannel
 
@@ -60,11 +63,15 @@ class SubscriptionsViewModel
         private val neuroEngine: FlowNeuroEngine,
         private val backupCoordinator: BackupCoordinator,
         private val watchHistoryDao: WatchHistoryDao,
+        private val channelStatsStore: io.github.aedev.flow.data.local.ChannelSubscriberStore,
     ) : ViewModel() {
         companion object {
             private const val TAG = "SubsViewModel"
 
             private const val RELATIVE_TIME_TICK_MS = 60L * 1000L
+            private const val CHANNEL_STATS_CONCURRENCY = 6
+            private const val CHANNEL_STATS_BATCH = 12
+            private const val CHANNEL_STATS_TIMEOUT_MS = 8_000L
         }
 
         private val _uiState = MutableStateFlow(SubscriptionsUiState())
@@ -155,6 +162,7 @@ class SubscriptionsViewModel
                     val mode = SubscriptionSortMode.fromStorage(stored)
                     val counts = if (mode == SubscriptionSortMode.MOST_WATCHED) watchHistoryDao.channelWatchCounts() else emptyMap()
                     _uiState.update { it.copy(sortMode = mode, channelWatchCounts = counts) }
+                    if (mode.needsChannelStats) loadChannelStats()
                 }
             }
 
@@ -525,8 +533,65 @@ class SubscriptionsViewModel
             }
         }
 
+        private var channelStatsJob: kotlinx.coroutines.Job? = null
+
+        /**
+         * Reads what is known of each channel's subscribers, videos and subscribed-on date, then looks up the
+         * channels still missing a figure a few at a time, so the list reorders as the figures arrive.
+         */
+        private fun loadChannelStats() {
+            channelStatsJob?.cancel()
+            channelStatsJob =
+                viewModelScope.launch(PerformanceDispatcher.networkIO) {
+                    val subscriptions = runCatching { subscriptionRepository.getAllSubscriptions().first() }.getOrDefault(emptyList())
+                    _uiState.update {
+                        it.copy(
+                            channelSubscribedAt = subscriptions.associate { sub -> sub.channelId to sub.subscribedAt },
+                            channelSubscriberCounts = channelStatsStore.fresh(),
+                            channelVideoCounts = channelStatsStore.freshVideoCounts(),
+                        )
+                    }
+                    val gate = kotlinx.coroutines.sync.Semaphore(CHANNEL_STATS_CONCURRENCY)
+                    val missing =
+                        subscriptions
+                            .map { it.channelId }
+                            .filter { id -> id !in _uiState.value.channelSubscriberCounts || id !in _uiState.value.channelVideoCounts }
+                    missing.chunked(CHANNEL_STATS_BATCH).forEach { batch ->
+                        val stats =
+                            kotlinx.coroutines
+                                .coroutineScope {
+                                    batch
+                                        .map { channelId ->
+                                            kotlinx.coroutines.async {
+                                                gate.withPermit {
+                                                    kotlinx.coroutines.withTimeoutOrNull(CHANNEL_STATS_TIMEOUT_MS) {
+                                                        io.github.aedev.flow.innertube.YouTube
+                                                            .channelLanding(channelId)
+                                                            .getOrNull()
+                                                            ?.header
+                                                            ?.let { header -> channelId to channelCounts(header) }
+                                                    }
+                                                }
+                                            }
+                                        }.map { it.await() }
+                                }.filterNotNull()
+                        val subscribers = stats.mapNotNull { (id, counts) -> counts.first?.let { id to it } }.toMap()
+                        val videos = stats.mapNotNull { (id, counts) -> counts.second?.let { id to it } }.toMap()
+                        channelStatsStore.remember(subscribers)
+                        channelStatsStore.rememberVideoCounts(videos)
+                        _uiState.update {
+                            it.copy(
+                                channelSubscriberCounts = it.channelSubscriberCounts + subscribers,
+                                channelVideoCounts = it.channelVideoCounts + videos,
+                            )
+                        }
+                    }
+                }
+        }
+
         fun setSortMode(mode: SubscriptionSortMode) {
             _uiState.update { it.copy(sortMode = mode) }
+            if (mode.needsChannelStats) loadChannelStats()
             viewModelScope.launch(PerformanceDispatcher.diskIO) {
                 playerPreferences.setSubsSortMode(mode.name)
             }

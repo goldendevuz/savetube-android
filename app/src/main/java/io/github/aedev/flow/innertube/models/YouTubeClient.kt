@@ -76,7 +76,7 @@ data class YouTubeClient(
                 originalUrl = originalUrl,
                 platform = platform,
                 utcOffsetMinutes = utcOffsetMinutes,
-                gl = locale.gl,
+                gl = locale.gl.takeUnless { it == "ZZ" },
                 hl = locale.hl,
                 visitorData = visitorData,
                 userAgent = userAgent.takeIf { sendUserAgentInContext },

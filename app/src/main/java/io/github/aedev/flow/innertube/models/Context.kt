@@ -21,7 +21,7 @@ data class Context(
         val originalUrl: String? = null,
         val platform: String? = null,
         val utcOffsetMinutes: Int? = null,
-        val gl: String,
+        val gl: String? = null,
         val hl: String,
         val visitorData: String?,
         val userAgent: String? = null,

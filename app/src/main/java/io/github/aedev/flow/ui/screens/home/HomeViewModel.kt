@@ -17,6 +17,7 @@ import io.github.aedev.flow.data.local.HomeFeedCacheRepository
 import io.github.aedev.flow.data.local.SubscriptionRepository
 import io.github.aedev.flow.data.local.ViewHistory
 import io.github.aedev.flow.data.model.Video
+import io.github.aedev.flow.innertube.pages.channel.channelCounts
 import io.github.aedev.flow.data.model.toVideo
 import io.github.aedev.flow.data.recommendation.ChannelMemoryRepository
 import io.github.aedev.flow.data.recommendation.FeedExclusions
@@ -347,6 +348,25 @@ class HomeViewModel
                     .collect { reloadFeed() }
             }
 
+            // A changed minimum or music choice hides what is on screen at once and rebuilds the feed.
+            viewModelScope.launch {
+                combine(
+                    playerPreferences.homeMinViews,
+                    playerPreferences.homeMinSubscribers,
+                    playerPreferences.homeHideMusicVideos,
+                    playerPreferences.homePinFreshSubs,
+                ) { views, subscribers, music, pin -> listOf(views, subscribers, music, pin) }
+                    .distinctUntilChanged()
+                    .drop(1)
+                    .collect {
+                        val filters = homeContentFilters()
+                        if (filters.isActive) {
+                            _uiState.update { state -> state.copy(videos = state.videos.filterNot(filters::hides)) }
+                        }
+                        reloadFeed()
+                    }
+            }
+
             viewModelScope.launch {
                 playerPreferences.effectiveHomeShortsShelfEnabled.distinctUntilChanged().collect { enabled ->
                     if (!enabled) {
@@ -565,24 +585,26 @@ class HomeViewModel
                     .toList()
             if (missing.isEmpty()) return
             val gate = kotlinx.coroutines.sync.Semaphore(SUBSCRIBER_LOOKUP_CONCURRENCY)
-            val counts =
+            val stats =
                 coroutineScope {
                     missing
                         .map { channelId ->
                             async(PerformanceDispatcher.networkIO) {
                                 gate.withPermit {
-                                    val count =
-                                        kotlinx.coroutines.withTimeoutOrNull(SUBSCRIBER_LOOKUP_TIMEOUT_MS) {
-                                            repository.getChannelInfo(channelId)?.subscriberCount?.takeIf { it >= 0L }
-                                        }
-                                    count?.let { channelId to it }
+                                    kotlinx.coroutines.withTimeoutOrNull(SUBSCRIBER_LOOKUP_TIMEOUT_MS) {
+                                        io.github.aedev.flow.innertube.YouTube
+                                            .channelLanding(channelId)
+                                            .getOrNull()
+                                            ?.header
+                                            ?.let { header -> channelId to channelCounts(header) }
+                                    }
                                 }
                             }
                         }.awaitAll()
                         .filterNotNull()
-                        .toMap()
                 }
-            subscriberStore.remember(counts)
+            subscriberStore.remember(stats.mapNotNull { (id, counts) -> counts.first?.let { id to it } }.toMap())
+            subscriberStore.rememberVideoCounts(stats.mapNotNull { (id, counts) -> counts.second?.let { id to it } }.toMap())
         }
 
         private suspend fun cacheFilters(): HomeFeedCacheFilters =

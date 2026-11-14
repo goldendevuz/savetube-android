@@ -32,6 +32,15 @@ fun newPipeLocalization(languageTag: String): Localization {
 
 private fun Localization.hasTimeAgoPatterns(): Boolean = TimeAgoPatternsManager.getTimeAgoParserFor(this) != null
 
+/** Stands for "send no `gl` at all"; not a country YouTube knows. */
+const val NO_COUNTRY_SENT = "ZZ"
+
+/** Whether [region] is one of the choices that send no country (UZ, which YouTube turns down, and Automatic). */
+fun regionSendsNoCountry(region: String): Boolean {
+    val normalized = region.trim().uppercase(Locale.US)
+    return normalized == "UZ" || normalized == "AUTO"
+}
+
 /** Two-letter country for YouTube's `gl`, falling back to the device country and then to US. */
 fun normalizeYouTubeCountry(region: String): String {
     val normalized = region.trim().uppercase(Locale.US)
@@ -54,9 +63,11 @@ fun contentYouTubeLocale(
     deviceLocale: Locale,
 ): YouTubeLocale {
     val language = if (contentLanguage == CONTENT_LANGUAGE_FOLLOW_APP) appliedAppLanguage else contentLanguage
-    return YouTubeLocale(gl = normalizeYouTubeCountry(region), hl = normalizeYouTubeHostLanguage(language, deviceLocale))
+    val country = if (regionSendsNoCountry(region)) NO_COUNTRY_SENT else normalizeYouTubeCountry(region)
+    return YouTubeLocale(gl = country, hl = normalizeYouTubeHostLanguage(language, deviceLocale))
 }
 
-fun newPipeContentCountry(region: String): ContentCountry = ContentCountry(normalizeYouTubeCountry(region))
+fun newPipeContentCountry(region: String): ContentCountry =
+    ContentCountry(if (regionSendsNoCountry(region)) "US" else normalizeYouTubeCountry(region))
 
 private val COUNTRY_CODE = Regex("[A-Z]{2}")

@@ -104,7 +104,7 @@ internal fun HomeFeedGrid(
                         thumbnailWidth = plan.listThumbnailWidth,
                         density = plan.cardDensity,
                         reason = channelMemoryReason.takeIf { uiState.origins[row.video.id]?.kind == HomeCardOrigin.Kind.CHANNEL_MEMORY },
-                        whyShown = uiState.origins[row.video.id]?.label(),
+                        whyShown = uiState.origins[row.video.id]?.label(row.video.channelName),
                         modifier = Modifier.testTag("home_video_card"),
                     )
                 }
