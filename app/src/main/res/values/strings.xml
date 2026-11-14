@@ -5037,4 +5037,12 @@
     <string name="app_lock_screen_title">SaveTube is locked</string>
     <string name="app_lock_screen_body">Use your fingerprint, face or screen lock to open it</string>
     <string name="app_lock_unlock">Unlock</string>
+    <string name="content_settings_home_min_off">Off</string>
+    <string name="content_settings_home_min_views_title">Hide videos with fewer views than</string>
+    <string name="content_settings_home_min_views_dialog_body">Home leaves out videos below this many views. Live and upcoming videos are kept.</string>
+    <string name="content_settings_home_min_subscribers_title">Hide channels with fewer subscribers than</string>
+    <string name="content_settings_home_min_subscribers_dialog_body">Home leaves out videos from channels below this many subscribers. A channel is shown once its size is known, so Home can be sparse for a moment after you turn this on.</string>
+    <string name="content_settings_home_hide_music_title">Hide music videos</string>
+    <string name="content_settings_home_hide_music_subtitle">A guess from the title and channel (Official Video, Lyrics, VEVO, Topic), so some songs get through.</string>
+    <string name="settings_keywords_home_min">views, subscribers, minimum, music, filter, small channels</string>
 </resources>

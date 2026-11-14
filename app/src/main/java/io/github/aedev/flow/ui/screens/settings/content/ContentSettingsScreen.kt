@@ -46,6 +46,8 @@ internal fun ContentSettingsScreen(
     val linkHandlingLabel = rememberLinkHandlingLabel()
     var showThresholdDialog by rememberSaveable { mutableStateOf(false) }
     var showSharedLinksDialog by rememberSaveable { mutableStateOf(false) }
+    var showMinViewsDialog by rememberSaveable { mutableStateOf(false) }
+    var showMinSubscribersDialog by rememberSaveable { mutableStateOf(false) }
 
     SettingsPage(
         title = stringResource(R.string.settings_content_title),
@@ -61,6 +63,15 @@ internal fun ContentSettingsScreen(
             switch(ContentIndex.homeShortsShelf, viewModel.homeShortsShelf, viewModel::setHomeShortsShelf, enabled = shortsContent)
             switch(ContentIndex.homeSubscriptions, viewModel.homeSubscriptions, viewModel::setHomeSubscriptions)
             switch(ContentIndex.hideWatchedHome, viewModel.hideWatchedHome, viewModel::setHideWatchedHome)
+            choice(ContentIndex.homeMinViews, onClick = { showMinViewsDialog = true }) {
+                val value by viewModel.homeMinViews.collectAsStateWithLifecycle()
+                minCountLabel(value)
+            }
+            choice(ContentIndex.homeMinSubscribers, onClick = { showMinSubscribersDialog = true }) {
+                val value by viewModel.homeMinSubscribers.collectAsStateWithLifecycle()
+                minCountLabel(value)
+            }
+            switch(ContentIndex.homeHideMusic, viewModel.homeHideMusic, viewModel::setHomeHideMusic)
         }
         group(key = "content.music", header = R.string.screen_title_music) {
             nav(
@@ -148,6 +159,30 @@ internal fun ContentSettingsScreen(
         )
     }
 
+    if (showMinViewsDialog) {
+        val value by viewModel.homeMinViews.collectAsStateWithLifecycle()
+        FlowChoiceDialog(
+            title = stringResource(R.string.content_settings_home_min_views_title),
+            description = stringResource(R.string.content_settings_home_min_views_dialog_body),
+            options = MIN_VIEWS_OPTIONS.map { FlowChoice(it, minCountLabel(it)) },
+            selected = value,
+            onSelect = viewModel::setHomeMinViews,
+            onDismiss = { showMinViewsDialog = false },
+        )
+    }
+
+    if (showMinSubscribersDialog) {
+        val value by viewModel.homeMinSubscribers.collectAsStateWithLifecycle()
+        FlowChoiceDialog(
+            title = stringResource(R.string.content_settings_home_min_subscribers_title),
+            description = stringResource(R.string.content_settings_home_min_subscribers_dialog_body),
+            options = MIN_SUBSCRIBERS_OPTIONS.map { FlowChoice(it, minCountLabel(it)) },
+            selected = value,
+            onSelect = viewModel::setHomeMinSubscribers,
+            onDismiss = { showMinSubscribersDialog = false },
+        )
+    }
+
     if (showSharedLinksDialog) {
         val action by viewModel.sharedLinkAction.collectAsStateWithLifecycle()
         FlowChoiceDialog(
@@ -176,4 +211,23 @@ private fun watchedThresholdLabel(threshold: WatchedThreshold): String =
         WatchedThreshold.PERCENT_95 -> stringResource(R.string.content_settings_watched_threshold_95)
         WatchedThreshold.PERCENT_99 -> stringResource(R.string.content_settings_watched_threshold_99)
         WatchedThreshold.ALMOST_FINISHED -> stringResource(R.string.content_settings_watched_threshold_almost)
+    }
+
+private val MIN_VIEWS_OPTIONS =
+    listOf(0L, 100L, 1_000L, 5_000L, 10_000L, 50_000L, 100_000L, 500_000L, 1_000_000L, 5_000_000L, 10_000_000L, 100_000_000L, 1_000_000_000L)
+
+private val MIN_SUBSCRIBERS_OPTIONS =
+    listOf(0L, 1_000L, 10_000L, 100_000L, 500_000L, 1_000_000L, 5_000_000L, 10_000_000L, 50_000_000L, 100_000_000L, 500_000_000L, 1_000_000_000L)
+
+@Composable
+private fun minCountLabel(value: Long): String =
+    if (value <= 0L) {
+        stringResource(R.string.content_settings_home_min_off)
+    } else {
+        when {
+            value >= 1_000_000_000L -> "${value / 1_000_000_000L}B"
+            value >= 1_000_000L -> "${value / 1_000_000L}M"
+            value >= 1_000L -> "${value / 1_000L}K"
+            else -> value.toString()
+        }
     }

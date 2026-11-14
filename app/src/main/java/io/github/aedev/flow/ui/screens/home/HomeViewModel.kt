@@ -64,6 +64,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
+import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withTimeoutOrNull
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
@@ -115,6 +116,9 @@ class HomeViewModel
             private const val TAG = "HomeViewModel"
             private const val UI_STATE_SUBSCRIPTION_TIMEOUT_MS = 5_000L
             private const val MAX_RELATED_SEEDS = 4
+            private const val SUBSCRIBER_LOOKUPS_PER_LOAD = 60
+            private const val SUBSCRIBER_LOOKUP_CONCURRENCY = 10
+            private const val SUBSCRIBER_LOOKUP_TIMEOUT_MS = 6_000L
             private const val MIN_PAGE_SIZE = 8
             private const val LOAD_MORE_GRAPH_SEEDS = 3
 
@@ -522,10 +526,64 @@ class HomeViewModel
                 showOnHome = playerPreferences.homeSubscriptionsEnabled.first(),
             )
 
-        private suspend fun feedExclusions(): FeedExclusions =
-            runCatching { FlowNeuroEngine.feedExclusions() }
-                .getOrDefault(FeedExclusions.NONE)
-                .hidingChannels(subscriptionScope().hidden)
+        private val subscriberStore by lazy { io.github.aedev.flow.data.local.ChannelSubscriberStore(appContext) }
+
+        private suspend fun homeContentFilters(): HomeContentFilters {
+            val minSubscribers = playerPreferences.homeMinSubscribers.first()
+            return HomeContentFilters(
+                minViews = playerPreferences.homeMinViews.first(),
+                minSubscribers = minSubscribers,
+                hideMusicVideos = playerPreferences.homeHideMusicVideos.first(),
+                subscribers = if (minSubscribers > 0L) subscriberStore.fresh() else emptyMap(),
+            )
+        }
+
+        private suspend fun feedExclusions(): FeedExclusions {
+            val base =
+                runCatching { FlowNeuroEngine.feedExclusions() }
+                    .getOrDefault(FeedExclusions.NONE)
+                    .hidingChannels(subscriptionScope().hidden)
+            val filters = homeContentFilters()
+            return if (filters.isActive) base.hidingWhere(filters::hides) else base
+        }
+
+        /**
+         * With a minimum subscriber count set, looks up the channels of [videos] that have no count yet (a
+         * bounded number per load, kept for a month), so the minimum applies from the first paint. A
+         * channel that does not answer in time stays unknown, and unknown channels stay hidden.
+         */
+        private suspend fun learnSubscriberCounts(videos: List<Video>) {
+            if (playerPreferences.homeMinSubscribers.first() <= 0L) return
+            val known = subscriberStore.fresh()
+            val missing =
+                videos
+                    .asSequence()
+                    .map { it.channelId }
+                    .filter { it.isNotBlank() && it !in known }
+                    .distinct()
+                    .take(SUBSCRIBER_LOOKUPS_PER_LOAD)
+                    .toList()
+            if (missing.isEmpty()) return
+            val gate = kotlinx.coroutines.sync.Semaphore(SUBSCRIBER_LOOKUP_CONCURRENCY)
+            val counts =
+                coroutineScope {
+                    missing
+                        .map { channelId ->
+                            async(PerformanceDispatcher.networkIO) {
+                                gate.withPermit {
+                                    val count =
+                                        kotlinx.coroutines.withTimeoutOrNull(SUBSCRIBER_LOOKUP_TIMEOUT_MS) {
+                                            repository.getChannelInfo(channelId)?.subscriberCount?.takeIf { it >= 0L }
+                                        }
+                                    count?.let { channelId to it }
+                                }
+                            }
+                        }.awaitAll()
+                        .filterNotNull()
+                        .toMap()
+                }
+            subscriberStore.remember(counts)
+        }
 
         private suspend fun cacheFilters(): HomeFeedCacheFilters =
             HomeFeedCacheFilters(watchedVideoIds = watchedVideoIds.value, exclusions = feedExclusions())
@@ -661,7 +719,7 @@ class HomeViewModel
                         val brain = FlowNeuroEngine.getBrainSnapshot()
                         val taste = feedTasteProfile(brain, FlowNeuroEngine.getPersona(brain))
 
-                        val exclusions = feedExclusions()
+                        var exclusions = feedExclusions()
                         // Subscriptions come from the store, which is local: the network top-up runs
                         // after first paint and never holds the feed back.
                         val storedFeed =
@@ -704,6 +762,11 @@ class HomeViewModel
                         val trace = if (snapshotRecorder.isRecording()) RankTrace() else null
                         snapshotTrace = trace
                         if (trace == null) snapshotFeedJob?.cancel()
+                        learnSubscriberCounts(
+                            storedFeed.storedSubscriptionVideos(now) + rawDiscovery + rawMemory +
+                                rawRelated.map { it.video } + rawNeighbours,
+                        )
+                        exclusions = feedExclusions()
                         val lanes =
                             buildHomeFeedLanes(
                                 rawSubs = storedFeed.storedSubscriptionVideos(now),

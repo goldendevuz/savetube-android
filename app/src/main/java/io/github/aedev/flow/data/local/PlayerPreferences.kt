@@ -161,6 +161,9 @@ class PlayerPreferences(
         val PLAYLISTS_COMPACT_LAYOUT = booleanPreferencesKey("playlists_compact_layout")
         val PLAYLISTS_SHOW_MUSIC = booleanPreferencesKey("playlists_show_music")
         val HOME_SHORTS_SHELF_ENABLED = booleanPreferencesKey("home_shorts_shelf_enabled")
+        val HOME_MIN_VIEWS = longPreferencesKey("home_min_views")
+        val HOME_MIN_SUBSCRIBERS = longPreferencesKey("home_min_subscribers")
+        val HOME_HIDE_MUSIC_VIDEOS = booleanPreferencesKey("home_hide_music_videos")
         val HOME_SUBSCRIPTIONS_ENABLED = booleanPreferencesKey("home_subscriptions_enabled")
         val HOME_SNAPSHOT_RECORDING = booleanPreferencesKey("home_snapshot_recording")
         val ONBOARDING_DONE = booleanPreferencesKey("onboarding_done")
@@ -1342,6 +1345,38 @@ class PlayerPreferences(
     suspend fun setHomeShortsShelfEnabled(enabled: Boolean) {
         context.playerPreferencesDataStore.edit { preferences ->
             preferences[Keys.HOME_SHORTS_SHELF_ENABLED] = enabled
+        }
+    }
+
+    /** Home hides videos with fewer views than this; 0 keeps everything. */
+    val homeMinViews: Flow<Long> =
+        context.playerPreferencesDataStore.data
+            .map { preferences -> preferences[Keys.HOME_MIN_VIEWS] ?: 0L }
+
+    suspend fun setHomeMinViews(value: Long) {
+        context.playerPreferencesDataStore.edit { preferences ->
+            preferences[Keys.HOME_MIN_VIEWS] = value
+        }
+    }
+
+    /** Home hides videos from channels with fewer subscribers than this; 0 keeps everything. */
+    val homeMinSubscribers: Flow<Long> =
+        context.playerPreferencesDataStore.data
+            .map { preferences -> preferences[Keys.HOME_MIN_SUBSCRIBERS] ?: 0L }
+
+    suspend fun setHomeMinSubscribers(value: Long) {
+        context.playerPreferencesDataStore.edit { preferences ->
+            preferences[Keys.HOME_MIN_SUBSCRIBERS] = value
+        }
+    }
+
+    val homeHideMusicVideos: Flow<Boolean> =
+        context.playerPreferencesDataStore.data
+            .map { preferences -> preferences[Keys.HOME_HIDE_MUSIC_VIDEOS] ?: false }
+
+    suspend fun setHomeHideMusicVideos(enabled: Boolean) {
+        context.playerPreferencesDataStore.edit { preferences ->
+            preferences[Keys.HOME_HIDE_MUSIC_VIDEOS] = enabled
         }
     }
 
