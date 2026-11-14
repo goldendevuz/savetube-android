@@ -18,6 +18,7 @@ class FeedExclusions(
     val blockedChannelIds: Set<String> = emptySet(),
     val suppressedChannelIds: Set<String> = emptySet(),
     private val blockedText: (title: String, channelName: String) -> Boolean = { _, _ -> false },
+    private val extraRecommendationFilter: (Video) -> Boolean = { false },
 ) {
     val isEmpty: Boolean
         get() = suppressedVideoIds.isEmpty() && blockedChannelIds.isEmpty() && suppressedChannelIds.isEmpty()
@@ -29,14 +30,27 @@ class FeedExclusions(
     fun hidesFromRecommendations(video: Video): Boolean =
         hides(video) ||
             (video.channelId.isNotBlank() && video.channelId in suppressedChannelIds) ||
-            blockedText(video.title, video.channelName)
+            blockedText(video.title, video.channelName) ||
+            extraRecommendationFilter(video)
 
     /** The same exclusions, also hiding every video from [channelIds]. */
     fun hidingChannels(channelIds: Set<String>): FeedExclusions =
         if (channelIds.isEmpty()) {
             this
         } else {
-            FeedExclusions(suppressedVideoIds, blockedChannelIds + channelIds, suppressedChannelIds, blockedText)
+            FeedExclusions(
+                suppressedVideoIds,
+                blockedChannelIds + channelIds,
+                suppressedChannelIds,
+                blockedText,
+                extraRecommendationFilter,
+            )
+        }
+
+    /** The same exclusions, also hiding what [predicate] says from the surfaces the app picks videos for. */
+    fun hidingWhere(predicate: (Video) -> Boolean): FeedExclusions =
+        FeedExclusions(suppressedVideoIds, blockedChannelIds, suppressedChannelIds, blockedText) { video ->
+            extraRecommendationFilter(video) || predicate(video)
         }
 
     companion object {

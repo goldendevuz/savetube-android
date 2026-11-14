@@ -36,6 +36,10 @@ class ContentSettingsViewModel
         val subsRefreshOnStartup = preferences.subscriptionRefreshOnStartup.asState(false)
         val subsCheckedCount = preferences.subscriptionShowCheckedVideoCount.asState(true)
 
+        val homeMinViews = preferences.homeMinViews.asState(0L)
+        val homeMinSubscribers = preferences.homeMinSubscribers.asState(0L)
+        val homeHideMusic = preferences.homeHideMusicVideos.asState(false)
+
         val shortsContent = preferences.shortsContentEnabled.asState(true)
         val channelShortsTab = preferences.channelShortsTabWhenHidden.asState(false)
         val hideWatchedShorts = preferences.hideWatchedShorts.asState(true)
@@ -87,6 +91,12 @@ class ContentSettingsViewModel
         fun setSubsRefreshOnStartup(value: Boolean) = write { preferences.setSubscriptionRefreshOnStartup(value) }
 
         fun setSubsCheckedCount(value: Boolean) = write { preferences.setSubscriptionShowCheckedVideoCount(value) }
+
+        fun setHomeMinViews(value: Long) = write { preferences.setHomeMinViews(value) }
+
+        fun setHomeMinSubscribers(value: Long) = write { preferences.setHomeMinSubscribers(value) }
+
+        fun setHomeHideMusic(value: Boolean) = write { preferences.setHomeHideMusicVideos(value) }
 
         fun setShortsContent(value: Boolean) = write { preferences.setShortsContentEnabled(value) }
 
