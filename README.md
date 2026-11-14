@@ -3,7 +3,7 @@
   <p>An open-source YouTube and YouTube Music client with recommendations that stay on your phone.</p>
   <p>
     <a href="https://goldendevuz.github.io/savetube-website/">Website</a> ·
-    <a href="https://github.com/goldendevuz/flow-desktop">Windows app</a> ·
+    <a href="https://github.com/goldendevuz/savetube-desktop">Windows app</a> ·
     <a href="https://github.com/goldendevuz/savetube-extension">Browser extension</a>
   </p>
 </div>
