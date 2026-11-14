@@ -163,6 +163,7 @@ class PlayerPreferences(
         val HOME_SHORTS_SHELF_ENABLED = booleanPreferencesKey("home_shorts_shelf_enabled")
         val HOME_MIN_VIEWS = longPreferencesKey("home_min_views")
         val HOME_MIN_SUBSCRIBERS = longPreferencesKey("home_min_subscribers")
+        val HOME_DURATION_GROUP = stringPreferencesKey("home_duration_group")
         val HOME_HIDE_MUSIC_VIDEOS = booleanPreferencesKey("home_hide_music_videos")
         val HOME_PIN_FRESH_SUBS = booleanPreferencesKey("home_pin_fresh_subs")
         val HOME_SUBSCRIPTIONS_ENABLED = booleanPreferencesKey("home_subscriptions_enabled")
@@ -1379,6 +1380,17 @@ class PlayerPreferences(
     suspend fun setHomePinFreshSubs(enabled: Boolean) {
         context.playerPreferencesDataStore.edit { preferences ->
             preferences[Keys.HOME_PIN_FRESH_SUBS] = enabled
+        }
+    }
+
+    /** Home keeps only videos of one length group, "g1" to "g8" (the CRM's groups); "any" keeps every length. */
+    val homeDurationGroup: Flow<String> =
+        context.playerPreferencesDataStore.data
+            .map { preferences -> preferences[Keys.HOME_DURATION_GROUP] ?: "any" }
+
+    suspend fun setHomeDurationGroup(group: String) {
+        context.playerPreferencesDataStore.edit { preferences ->
+            preferences[Keys.HOME_DURATION_GROUP] = group
         }
     }
 

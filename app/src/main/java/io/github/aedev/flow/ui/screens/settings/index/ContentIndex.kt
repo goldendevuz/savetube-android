@@ -79,6 +79,14 @@ internal object ContentIndex {
             section = R.string.settings_section_home,
             destination = page,
         )
+    val homeDurationGroup =
+        SettingEntry(
+            key = "content.home.duration_group",
+            title = R.string.content_settings_home_duration_title,
+            keywords = R.string.settings_keywords_home_duration,
+            section = R.string.settings_section_home,
+            destination = page,
+        )
     val homeHideMusic =
         SettingEntry(
             key = "content.home.hide_music",
@@ -304,6 +312,7 @@ internal object ContentIndex {
             homeMinViews,
             homeMinSubscribers,
             homeHideMusic,
+            homeDurationGroup,
             homePinFreshSubs,
             homeSubscriptions,
             hideWatchedHome,

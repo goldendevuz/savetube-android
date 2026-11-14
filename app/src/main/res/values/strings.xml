@@ -5054,4 +5054,16 @@
     <string name="subscriptions_sort_videos_asc">Fewest videos</string>
     <string name="subscriptions_sort_added_newest">Subscribed recently</string>
     <string name="subscriptions_sort_added_oldest">Subscribed longest ago</string>
+    <string name="content_settings_home_duration_title">Show only videos of this length</string>
+    <string name="content_settings_home_duration_dialog_body">Home keeps only videos in the chosen length group (G1 to G8). Live streams are always kept.</string>
+    <string name="content_settings_home_duration_any">Any length</string>
+    <string name="content_settings_home_duration_g1">G1 · up to 1 minute</string>
+    <string name="content_settings_home_duration_g2">G2 · 1–5 minutes</string>
+    <string name="content_settings_home_duration_g3">G3 · 5–10 minutes</string>
+    <string name="content_settings_home_duration_g4">G4 · 10–20 minutes</string>
+    <string name="content_settings_home_duration_g5">G5 · 20–40 minutes</string>
+    <string name="content_settings_home_duration_g6">G6 · 40–60 minutes</string>
+    <string name="content_settings_home_duration_g7">G7 · 1–2 hours</string>
+    <string name="content_settings_home_duration_g8">G8 · over 2 hours</string>
+    <string name="settings_keywords_home_duration">length, duration, short, long, minutes, G1, G8, filter</string>
 </resources>
