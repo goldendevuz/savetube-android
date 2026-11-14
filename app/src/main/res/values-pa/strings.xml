@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Flow</string>
+    <string name="app_name">SaveTube</string>
     <string name="error_extraction_failed">ਵੀਡੀਓ ਡੇਟਾ ਨੂੰ ਪਾਰਸ ਨਹੀਂ ਕੀਤਾ ਜਾ ਸਕਿਆ</string>
     <string name="error_extraction_failed_hint">ਹੋ ਸਕਦਾ ਹੈ ਕਿ YouTube ਨੇ ਆਪਣਾ ਫਾਰਮੈਟ ਅੱਪਡੇਟ ਕਰ ਦਿੱਤਾ ਹੋਵੇ। Flow ਜਲਦੀ ਹੀ ਅੱਪਡੇਟ ਕੀਤਾ ਜਾਵੇਗਾ — ਕਿਰਪਾ ਕਰਕੇ ਬਾਅਦ ਵਿੱਚ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।</string>
     <string name="error_generic">ਵੀਡੀਓ ਲੋਡ ਕਰਨ ਵਿੱਚ ਅਸਫਲ</string>
@@ -416,7 +416,7 @@
     <string name="channel_links">ਲਿੰਕ</string>
     <string name="artist">ਕਲਾਕਾਰ</string>
     <string name="playlist">ਪਲੇਲਿਸਟ</string>
-    <string name="app_name_uppercase">FLOW</string>
+    <string name="app_name_uppercase">SAVETUBE</string>
     <string name="notification_badge_9_plus">9+</string>
     <string name="personalized_feed">ਤੁਹਾਡੀ ਵਿਅਕਤੀਗਤ ਫੀਡ</string>
     <plurals name="videos_curated_template">

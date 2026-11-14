@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Flow</string>
+    <string name="app_name">SaveTube</string>
     <string name="subscriptions_search_placeholder">Претражи претплате...</string>
     <string name="subscriptions_sort_label">Сортирај канале</string>
     <string name="subscriptions_sort_default">Подразумевано</string>
@@ -423,7 +423,7 @@
     <string name="channel_links">Линкови</string>
     <string name="artist">Уметник</string>
     <string name="playlist">Плаилист</string>
-    <string name="app_name_uppercase">FLOW</string>
+    <string name="app_name_uppercase">SAVETUBE</string>
     <string name="notification_badge_9_plus">9+</string>
     <string name="personalized_feed">Ваш персонализовани феед</string>
     <plurals name="videos_curated_template">

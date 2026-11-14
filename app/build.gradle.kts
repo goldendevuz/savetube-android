@@ -54,7 +54,7 @@ android {
     compileSdk = 37
 
     defaultConfig {
-        applicationId = "io.github.aedev.flow"
+        applicationId = "uz.univel.savetube"
         minSdk = 26
         targetSdk = 36
         versionCode = 19
@@ -98,7 +98,8 @@ android {
         create("github") {
             dimension = "version"
             isDefault = true
-            buildConfigField("Boolean", "UPDATER_ENABLED", "true")
+            // SaveTube is updated by installing a new APK from its own GitHub Actions build.
+            buildConfigField("Boolean", "UPDATER_ENABLED", "false")
             buildConfigField("String", "DISCORD_APPLICATION_ID", "\"1526515771021328514\"")
         }
         create("foss") {
@@ -265,6 +266,19 @@ androidComponents {
                 .map { BuildConfigField("int", it.toString(), null) }
                 .orElse(BuildConfigField("int", "0", null)),
         )
+    }
+}
+
+// SaveTube's own GitHub Actions builds: versionCode follows the run number, so each APK installs over the
+// last one. Local builds keep defaultConfig's version.
+androidComponents {
+    onVariants(selector().withBuildType("release")) { variant ->
+        val run = providers.environmentVariable("GITHUB_RUN_NUMBER").map(String::toInt)
+        variant.outputs.forEach { output ->
+            val localName = output.versionName.get()
+            output.versionCode.set(run.map { it + 100 }.orElse(output.versionCode.get()))
+            output.versionName.set(run.map { "$localName-savetube.$it" }.orElse(localName))
+        }
     }
 }
 

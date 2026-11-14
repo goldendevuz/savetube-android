@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Flow</string>
+    <string name="app_name">SaveTube</string>
     <string name="subscriptions_search_placeholder">சந்தாக்களைத் தேடு...</string>
     <string name="subscriptions_sort_label">சேனல்களை வரிசைப்படுத்தவும்</string>
     <string name="subscriptions_sort_default">இயல்புநிலை</string>
@@ -413,7 +413,7 @@
     <string name="channel_links">இணைப்புகள்</string>
     <string name="artist">கலைஞர்</string>
     <string name="playlist">பிளேலிஸ்ட்</string>
-    <string name="app_name_uppercase">FLOW</string>
+    <string name="app_name_uppercase">SAVETUBE</string>
     <string name="notification_badge_9_plus">9+</string>
     <string name="personalized_feed">உங்கள் தனிப்பயனாக்கப்பட்ட ஊட்டம்</string>
     <plurals name="videos_curated_template">

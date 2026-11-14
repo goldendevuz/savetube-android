@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Flow</string>
+    <string name="app_name">SaveTube</string>
     <string name="subscriptions_search_placeholder">سبسکرپشن تلاش کریں…</string>
     <string name="subscriptions_sort_label">چینلز کو ترتیب دیں</string>
     <string name="subscriptions_sort_default">ڈیفالٹ</string>
@@ -413,7 +413,7 @@
     <string name="channel_links">لنکس</string>
     <string name="artist">فنکار</string>
     <string name="playlist">پلے لسٹ</string>
-    <string name="app_name_uppercase">FLOW</string>
+    <string name="app_name_uppercase">SAVETUBE</string>
     <string name="notification_badge_9_plus">9+</string>
     <string name="personalized_feed">آپ کی ذاتی نوعیت کی فیڈ</string>
     <plurals name="videos_curated_template">
