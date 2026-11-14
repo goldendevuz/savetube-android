@@ -78,7 +78,7 @@
     <string name="btn_close">Mdel</string>
     <string name="action_comments">Iwenniten</string>
     <string name="action_save">Sekles</string>
-    <string name="app_name">Flow</string>
+    <string name="app_name">SaveTube</string>
     <string name="subscriptions_search_placeholder">Nadi Isugen...</string>
     <string name="subscriptions_sort_label">Ceggɛet tisɣenwalin</string>
     <string name="subscriptions_sort_default">Ur yelli ara deg umḍiq</string>
@@ -456,7 +456,7 @@
     <string name="channel_links">Issawalen</string>
     <string name="artist">Anaẓur</string>
     <string name="playlist">Umurar n wubrid</string>
-    <string name="app_name_uppercase">FLOW</string>
+    <string name="app_name_uppercase">SAVETUBE</string>
     <string name="personalized_feed">Asečču-inek i d-yettwassnen.</string>
     <plurals name="videos_curated_template">
         <item quantity="one">%1$d avidyut i yesɛeddan kan ɣef lǧal-ik.</item>

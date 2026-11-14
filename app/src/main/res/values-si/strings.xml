@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Flow</string>
+    <string name="app_name">SaveTube</string>
     <string name="subscriptions_search_placeholder">සබ්ක්‍රිප්ශන්ස් හොයන්න...</string>
     <string name="subscriptions_sort_label">නාලිකා වර්ග කරන්න</string>
     <string name="subscriptions_sort_default">පෙරනිමිය</string>
@@ -413,7 +413,7 @@
     <string name="channel_links">සබැඳි</string>
     <string name="artist">කලාකරුවා</string>
     <string name="playlist">ධාවන ලැයිස්තුව</string>
-    <string name="app_name_uppercase">FLOW</string>
+    <string name="app_name_uppercase">SAVETUBE</string>
     <string name="notification_badge_9_plus">9+</string>
     <string name="personalized_feed">ඔබේ පෞද්ගලීකරණය කළ සංග්රහය</string>
     <plurals name="videos_curated_template">

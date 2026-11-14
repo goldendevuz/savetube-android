@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Flow</string>
+    <string name="app_name">SaveTube</string>
     <string name="subscriptions_search_placeholder">ຊອກຫາການສະໝັກຮັບຊົມ ...</string>
     <string name="subscriptions_sort_label">ຈັດຮຽງຊ່ອງ</string>
     <string name="subscriptions_sort_default">ຄ່າເລີ່ມຕົ້ນ</string>
@@ -405,7 +405,7 @@
     <string name="channel_links">ລິ້ງຄ໌</string>
     <string name="artist">ສິລະປິນ</string>
     <string name="playlist">ລາຍການຫຼິ້ນ</string>
-    <string name="app_name_uppercase">FLOW</string>
+    <string name="app_name_uppercase">SAVETUBE</string>
     <string name="notification_badge_9_plus">9+</string>
     <string name="personalized_feed">ຟີດສ່ວນຕົວຂອງທ່ານ</string>
     <plurals name="videos_curated_template">

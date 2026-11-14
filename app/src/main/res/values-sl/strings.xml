@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Flow</string>
+    <string name="app_name">SaveTube</string>
     <string name="subscriptions_search_placeholder">Iskanje naročnin ...</string>
     <string name="subscriptions_sort_label">Razvrsti kanale</string>
     <string name="subscriptions_sort_default">Privzeto</string>
@@ -429,7 +429,7 @@
     <string name="channel_links">Povezave</string>
     <string name="artist">Umetnik</string>
     <string name="playlist">Seznam predvajanja</string>
-    <string name="app_name_uppercase">FLOW</string>
+    <string name="app_name_uppercase">SAVETUBE</string>
     <string name="notification_badge_9_plus">9+</string>
     <string name="personalized_feed">Vaš prilagojen vir</string>
     <plurals name="videos_curated_template">
