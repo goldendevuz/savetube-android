@@ -27,6 +27,7 @@ import io.github.aedev.flow.utils.PerformanceDispatcher
 import io.github.aedev.flow.utils.ThumbnailUrlResolver
 import io.github.aedev.flow.utils.formatYouTubeRelativeTime
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -562,7 +563,7 @@ class SubscriptionsViewModel
                                 .coroutineScope {
                                     batch
                                         .map { channelId ->
-                                            kotlinx.coroutines.async {
+                                            async {
                                                 gate.withPermit {
                                                     kotlinx.coroutines.withTimeoutOrNull(CHANNEL_STATS_TIMEOUT_MS) {
                                                         io.github.aedev.flow.innertube.YouTube
