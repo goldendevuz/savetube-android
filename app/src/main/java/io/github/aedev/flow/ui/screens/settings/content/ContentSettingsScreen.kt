@@ -72,6 +72,7 @@ internal fun ContentSettingsScreen(
                 minCountLabel(value)
             }
             switch(ContentIndex.homeHideMusic, viewModel.homeHideMusic, viewModel::setHomeHideMusic)
+            switch(ContentIndex.homePinFreshSubs, viewModel.homePinFreshSubs, viewModel::setHomePinFreshSubs)
         }
         group(key = "content.music", header = R.string.screen_title_music) {
             nav(

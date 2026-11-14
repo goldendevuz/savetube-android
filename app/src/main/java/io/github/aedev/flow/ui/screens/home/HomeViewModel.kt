@@ -780,7 +780,7 @@ class HomeViewModel
                                 timesShown = { id -> brain.feedHistory[id]?.showCount ?: 0 },
                                 taste = taste,
                                 now = now,
-                                freshSlotTarget = dynamicFreshSubSlots(userSubs.size),
+                                freshSlotTarget = if (playerPreferences.homePinFreshSubs.first()) dynamicFreshSubSlots(userSubs.size) else 0,
                                 subAvatarMap = subAvatarMap,
                                 rank = { pool -> FlowNeuroEngine.rank(pool, userSubs, trace = trace) },
                                 rankRelevant = { pool ->
