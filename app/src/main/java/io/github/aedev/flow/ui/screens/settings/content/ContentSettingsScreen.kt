@@ -48,6 +48,7 @@ internal fun ContentSettingsScreen(
     var showSharedLinksDialog by rememberSaveable { mutableStateOf(false) }
     var showMinViewsDialog by rememberSaveable { mutableStateOf(false) }
     var showMinSubscribersDialog by rememberSaveable { mutableStateOf(false) }
+    var showDurationGroupDialog by rememberSaveable { mutableStateOf(false) }
 
     SettingsPage(
         title = stringResource(R.string.settings_content_title),
@@ -70,6 +71,10 @@ internal fun ContentSettingsScreen(
             choice(ContentIndex.homeMinSubscribers, onClick = { showMinSubscribersDialog = true }) {
                 val value by viewModel.homeMinSubscribers.collectAsStateWithLifecycle()
                 minCountLabel(value)
+            }
+            choice(ContentIndex.homeDurationGroup, onClick = { showDurationGroupDialog = true }) {
+                val value by viewModel.homeDurationGroup.collectAsStateWithLifecycle()
+                durationGroupLabel(value)
             }
             switch(ContentIndex.homeHideMusic, viewModel.homeHideMusic, viewModel::setHomeHideMusic)
             switch(ContentIndex.homePinFreshSubs, viewModel.homePinFreshSubs, viewModel::setHomePinFreshSubs)
@@ -172,6 +177,18 @@ internal fun ContentSettingsScreen(
         )
     }
 
+    if (showDurationGroupDialog) {
+        val value by viewModel.homeDurationGroup.collectAsStateWithLifecycle()
+        FlowChoiceDialog(
+            title = stringResource(R.string.content_settings_home_duration_title),
+            description = stringResource(R.string.content_settings_home_duration_dialog_body),
+            options = DURATION_GROUP_KEYS.map { FlowChoice(it, durationGroupLabel(it)) },
+            selected = value,
+            onSelect = viewModel::setHomeDurationGroup,
+            onDismiss = { showDurationGroupDialog = false },
+        )
+    }
+
     if (showMinSubscribersDialog) {
         val value by viewModel.homeMinSubscribers.collectAsStateWithLifecycle()
         FlowChoiceDialog(
@@ -232,3 +249,21 @@ private fun minCountLabel(value: Long): String =
             else -> value.toString()
         }
     }
+
+private val DURATION_GROUP_KEYS = listOf("any", "g1", "g2", "g3", "g4", "g5", "g6", "g7", "g8")
+
+@Composable
+private fun durationGroupLabel(key: String): String =
+    stringResource(
+        when (key) {
+            "g1" -> R.string.content_settings_home_duration_g1
+            "g2" -> R.string.content_settings_home_duration_g2
+            "g3" -> R.string.content_settings_home_duration_g3
+            "g4" -> R.string.content_settings_home_duration_g4
+            "g5" -> R.string.content_settings_home_duration_g5
+            "g6" -> R.string.content_settings_home_duration_g6
+            "g7" -> R.string.content_settings_home_duration_g7
+            "g8" -> R.string.content_settings_home_duration_g8
+            else -> R.string.content_settings_home_duration_any
+        },
+    )

@@ -355,7 +355,8 @@ class HomeViewModel
                     playerPreferences.homeMinSubscribers,
                     playerPreferences.homeHideMusicVideos,
                     playerPreferences.homePinFreshSubs,
-                ) { views, subscribers, music, pin -> listOf(views, subscribers, music, pin) }
+                    playerPreferences.homeDurationGroup,
+                ) { views, subscribers, music, pin, duration -> listOf(views, subscribers, music, pin, duration) }
                     .distinctUntilChanged()
                     .drop(1)
                     .collect {
@@ -554,6 +555,7 @@ class HomeViewModel
                 minViews = playerPreferences.homeMinViews.first(),
                 minSubscribers = minSubscribers,
                 hideMusicVideos = playerPreferences.homeHideMusicVideos.first(),
+                durationGroup = playerPreferences.homeDurationGroup.first(),
                 subscribers = if (minSubscribers > 0L) subscriberStore.fresh() else emptyMap(),
             )
         }
