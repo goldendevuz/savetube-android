@@ -343,7 +343,7 @@ class Paxsenix(
             Request
                 .Builder()
                 .url("$PAXSENIX_BASE/apple-music/lyrics?id=$id")
-                .header("User-Agent", "Flow/${BuildConfig.VERSION_NAME}")
+                .header("User-Agent", "SaveTube/${BuildConfig.VERSION_NAME}")
                 .build()
         val body =
             try {

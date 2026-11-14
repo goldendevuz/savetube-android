@@ -57,7 +57,7 @@ class UnisonLyricsProvider(
                     Request
                         .Builder()
                         .url(url)
-                        .header("User-Agent", "Flow/${BuildConfig.VERSION_NAME}")
+                        .header("User-Agent", "SaveTube/${BuildConfig.VERSION_NAME}")
                         .header("Accept", "application/json")
                         .build()
                 val body =

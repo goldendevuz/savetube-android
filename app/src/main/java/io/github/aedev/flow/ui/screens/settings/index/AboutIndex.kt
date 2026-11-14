@@ -31,5 +31,5 @@ internal object AboutIndex {
     val notices = entry("notices", R.string.about_notices, R.string.section_legal, R.string.about_notices_summary)
     val deviceInfo = entry("device_info", R.string.about_device_info, R.string.section_device)
 
-    val all = listOf(changelog, website, github, reddit, creator, license, newPipe, notices, deviceInfo)
+    val all = listOf(changelog, website, github, creator, license, newPipe, notices, deviceInfo)
 }

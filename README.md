@@ -54,4 +54,6 @@ If you like the app, consider supporting the original author: [Flow on Open Coll
 
 ## Licence
 
+Original work: **Copyright © 2025–2026 A-EDev** ([Flow](https://github.com/Flow-Tube/Flow)). SaveTube's changes are released under the same licence.
+
 SaveTube is free software under the **GNU GPL v3.0**, like Flow. Anyone who uses its source code, including the recommendation engine, must also publish it under GPL-3.0. See [License](License).
