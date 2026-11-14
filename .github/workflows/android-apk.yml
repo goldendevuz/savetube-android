@@ -1,6 +1,6 @@
 name: SaveTube Android APK
 
-# Builds the signed SaveTube APK for 64-bit phones. Started by hand (Actions -> Run workflow, or
+# Builds the signed SaveTube APKs (arm64-v8a, armeabi-v7a and a universal one). Started by hand (Actions -> Run workflow, or
 # `gh workflow run android-apk.yml`). A newer build cancels the one in progress. The version code is the
 # run number + 100, so every APK installs over the previous one; it is signed with the key kept in the
 # ANDROID_KEYSTORE_BASE64 / ANDROID_KEYSTORE_PASSWORD secrets (the same key every time, or updates fail).
@@ -16,7 +16,7 @@ permissions:
 
 jobs:
   apk:
-    name: Signed APK (arm64-v8a)
+    name: Signed APKs (arm64, 32-bit, universal)
     runs-on: ubuntu-24.04
     timeout-minutes: 90
 
@@ -62,7 +62,8 @@ jobs:
       - name: Upload the APK
         uses: actions/upload-artifact@v7
         with:
-          name: SaveTube-android-arm64-${{ github.run_number }}
-          path: app/build/outputs/apk/github/release/*arm64-v8a*.apk
+          name: SaveTube-android-${{ github.run_number }}
+          # arm64-v8a for most phones, armeabi-v7a for 32-bit phones and many TVs, universal for any device.
+          path: app/build/outputs/apk/github/release/*.apk
           if-no-files-found: error
           retention-days: 14
