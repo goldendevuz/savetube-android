@@ -31,8 +31,24 @@ internal class SubscriptionChannels(
 @Composable
 internal fun rememberSubscriptionChannels(uiState: SubscriptionsUiState): SubscriptionChannels {
     val sorted =
-        remember(uiState.subscribedChannels, uiState.sortMode, uiState.recentVideos, uiState.channelWatchCounts) {
-            sortSubscriptions(uiState.subscribedChannels, uiState.sortMode, uiState.recentVideos, uiState.channelWatchCounts)
+        remember(
+            uiState.subscribedChannels,
+            uiState.sortMode,
+            uiState.recentVideos,
+            uiState.channelWatchCounts,
+            uiState.channelSubscriberCounts,
+            uiState.channelVideoCounts,
+            uiState.channelSubscribedAt,
+        ) {
+            sortSubscriptions(
+                uiState.subscribedChannels,
+                uiState.sortMode,
+                uiState.recentVideos,
+                uiState.channelWatchCounts,
+                uiState.channelSubscriberCounts,
+                uiState.channelVideoCounts,
+                uiState.channelSubscribedAt,
+            )
         }
     return remember(sorted, uiState.pinnedChannelIds) {
         SubscriptionChannels(sorted, quickAccessChannels(sorted, uiState.pinnedChannelIds, QUICK_ACCESS_CHANNEL_LIMIT))

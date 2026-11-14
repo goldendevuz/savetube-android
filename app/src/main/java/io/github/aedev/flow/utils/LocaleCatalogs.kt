@@ -108,6 +108,10 @@ object LanguageCatalog {
 }
 
 /** Sorted, localized names for the countries YouTube serves regional content to. */
+/** Region choices that send no country at all (YouTube rejects gl=UZ on browse). */
+const val REGION_UZ = "UZ"
+const val REGION_AUTO = "AUTO"
+
 object RegionCatalog {
     val codes: List<String> =
         listOf(
@@ -245,12 +249,20 @@ object RegionCatalog {
             "UY",
             "VE",
             "VN",
+            // YouTube turns down gl=UZ and cannot be asked for "no country", so these two send none.
+            REGION_UZ,
+            REGION_AUTO,
         )
 
     fun displayName(
         code: String,
         displayLocale: Locale = Locale.getDefault(),
-    ): String = Locale("", code).getDisplayCountry(displayLocale).ifBlank { code }
+    ): String =
+        when (code) {
+            REGION_AUTO -> "Automatic (no country limit)"
+            REGION_UZ -> "${Locale("", code).getDisplayCountry(displayLocale).ifBlank { code }} (no country limit)"
+            else -> Locale("", code).getDisplayCountry(displayLocale).ifBlank { code }
+        }
 
     /** Every region as (code, name), alphabetical by name in [displayLocale]. */
     fun sorted(displayLocale: Locale = Locale.getDefault()): List<Pair<String, String>> =

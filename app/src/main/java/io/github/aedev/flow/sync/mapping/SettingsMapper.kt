@@ -6,6 +6,7 @@ import io.github.aedev.flow.sync.canonical.CanonicalSetting
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.booleanOrNull
+import kotlinx.serialization.json.doubleOrNull
 import kotlinx.serialization.json.floatOrNull
 import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonPrimitive
@@ -81,6 +82,14 @@ object SettingsMapper {
             Entry("preferred_audio_language", "preferred_audio_language", Ty.STRING),
             Entry("preferred_subtitle_language", "preferred_subtitle_language", Ty.STRING),
             Entry("equalizer", EqStateJson.KEY, Ty.STRING),
+            // What Home and Shorts show, shared with the desktop app.
+            Entry("shorts_content_enabled", "shorts_content_enabled", Ty.BOOL),
+            Entry("shorts_shelf_enabled", "shorts_shelf_enabled", Ty.BOOL),
+            Entry("home_shorts_shelf_enabled", "home_shorts_shelf_enabled", Ty.BOOL),
+            Entry("home_min_views", "home_min_views", Ty.LONG),
+            Entry("home_min_subscribers", "home_min_subscribers", Ty.LONG),
+            Entry("home_hide_music_videos", "home_hide_music_videos", Ty.BOOL),
+            Entry("home_pin_fresh_subs", "home_pin_fresh_subs", Ty.BOOL),
         )
 
     private val byCanonical = WHITELIST.associateBy { it.canonical }
@@ -120,7 +129,7 @@ object SettingsMapper {
                 Ty.STRING -> strings[e.android] = prim.content
                 Ty.FLOAT -> prim.floatOrNull?.let { floats[e.android] = it }
                 Ty.INT -> prim.intOrNull?.let { ints[e.android] = it }
-                Ty.LONG -> prim.longOrNull?.let { longs[e.android] = it }
+                Ty.LONG -> (prim.longOrNull ?: prim.doubleOrNull?.toLong())?.let { longs[e.android] = it }
             }
         }
         return SettingsBackup(strings, booleans, ints, floats, longs)

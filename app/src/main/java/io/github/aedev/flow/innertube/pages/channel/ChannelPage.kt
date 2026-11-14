@@ -75,3 +75,19 @@ enum class ChannelTabKind {
                 Releases, Unknown -> null
             }
 }
+
+/**
+ * A channel's subscriber and video counts as (subscribers, videos), read from the header's own text in the
+ * request's language ("2,4 ming obunachi", "1,3 mln"); a count the header does not carry is null.
+ */
+internal fun channelCounts(header: ChannelHeader): Pair<Long?, Long?> {
+    val hl = io.github.aedev.flow.innertube.YouTube.locale.hl
+    val subscribers =
+        header.subscriberCount
+            ?: io.github.aedev.flow.innertube.pages.YouTubeCountParser
+                .parse(header.subscriberCountText, hl)
+    val videos =
+        io.github.aedev.flow.innertube.pages.YouTubeCountParser
+            .parse(header.videoCountText, hl)
+    return subscribers to videos
+}

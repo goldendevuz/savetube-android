@@ -13,7 +13,17 @@ enum class SubscriptionSortMode {
     NAME_ASC,
     RECENTLY_UPDATED,
     MOST_WATCHED,
+    SUBSCRIBERS_DESC,
+    SUBSCRIBERS_ASC,
+    VIDEOS_DESC,
+    VIDEOS_ASC,
+    ADDED_NEWEST,
+    ADDED_OLDEST,
     ;
+
+    /** The sorts that need a count or a date beyond the subscription itself. */
+    val needsChannelStats: Boolean
+        get() = this != DEFAULT && this != NAME_ASC && this != RECENTLY_UPDATED && this != MOST_WATCHED
 
     companion object {
         fun fromStorage(value: String?): SubscriptionSortMode = entries.firstOrNull { it.name == value } ?: DEFAULT
@@ -84,6 +94,10 @@ data class SubscriptionsUiState(
     val newUploadChannelIds: Set<String> = emptySet(),
     /** Watched videos per channel, loaded only for the Most watched sort. */
     val channelWatchCounts: Map<String, Int> = emptyMap(),
+    /** Subscriber, video and subscribed-on figures, loaded only for the sorts that use them. */
+    val channelSubscriberCounts: Map<String, Long> = emptyMap(),
+    val channelVideoCounts: Map<String, Long> = emptyMap(),
+    val channelSubscribedAt: Map<String, Long> = emptyMap(),
     val refreshStage: SubscriptionRefreshStage = SubscriptionRefreshStage.RSS,
     val refreshProcessedChannels: Int = 0,
     val refreshTotalChannels: Int = 0,

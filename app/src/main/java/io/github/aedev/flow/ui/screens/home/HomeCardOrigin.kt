@@ -29,10 +29,12 @@ data class HomeCardOrigin(
 }
 
 @Composable
-internal fun HomeCardOrigin.label(): String =
+internal fun HomeCardOrigin.label(channelName: String? = null): String =
     when (kind) {
         HomeCardOrigin.Kind.SUBSCRIPTION -> {
-            stringResource(R.string.home_origin_subscription)
+            // A followed channel is named when its name is known.
+            channelName?.trim()?.takeIf { it.isNotEmpty() }?.let { stringResource(R.string.home_origin_subscription_named, it) }
+                ?: stringResource(R.string.home_origin_subscription)
         }
 
         HomeCardOrigin.Kind.RELATED -> {

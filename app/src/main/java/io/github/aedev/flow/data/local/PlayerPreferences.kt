@@ -164,6 +164,7 @@ class PlayerPreferences(
         val HOME_MIN_VIEWS = longPreferencesKey("home_min_views")
         val HOME_MIN_SUBSCRIBERS = longPreferencesKey("home_min_subscribers")
         val HOME_HIDE_MUSIC_VIDEOS = booleanPreferencesKey("home_hide_music_videos")
+        val HOME_PIN_FRESH_SUBS = booleanPreferencesKey("home_pin_fresh_subs")
         val HOME_SUBSCRIPTIONS_ENABLED = booleanPreferencesKey("home_subscriptions_enabled")
         val HOME_SNAPSHOT_RECORDING = booleanPreferencesKey("home_snapshot_recording")
         val ONBOARDING_DONE = booleanPreferencesKey("onboarding_done")
@@ -1367,6 +1368,17 @@ class PlayerPreferences(
     suspend fun setHomeMinSubscribers(value: Long) {
         context.playerPreferencesDataStore.edit { preferences ->
             preferences[Keys.HOME_MIN_SUBSCRIBERS] = value
+        }
+    }
+
+    /** Home puts the newest uploads of followed channels near the top; off leaves them to the ranking. */
+    val homePinFreshSubs: Flow<Boolean> =
+        context.playerPreferencesDataStore.data
+            .map { preferences -> preferences[Keys.HOME_PIN_FRESH_SUBS] ?: true }
+
+    suspend fun setHomePinFreshSubs(enabled: Boolean) {
+        context.playerPreferencesDataStore.edit { preferences ->
+            preferences[Keys.HOME_PIN_FRESH_SUBS] = enabled
         }
     }
 

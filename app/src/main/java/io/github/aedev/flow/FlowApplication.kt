@@ -254,7 +254,7 @@ class FlowApplication :
                 YouTube.locale = newLocale
                 NewPipe.setupLocalization(
                     newPipeLocalization(newLocale.hl),
-                    ContentCountry(newLocale.gl),
+                    ContentCountry(if (newLocale.gl == io.github.aedev.flow.utils.NO_COUNTRY_SENT) "US" else newLocale.gl),
                 )
                 Log.d(TAG, "Dynamic YouTube Locale updated: gl=${newLocale.gl}, hl=${newLocale.hl}")
                 homeFeedLanguageReset.onContentLanguage(newLocale.hl)

@@ -357,7 +357,7 @@ class InnerTube {
                 parameter("client", "youtube")
                 parameter("ds", "yt")
                 parameter("hl", locale.hl)
-                parameter("gl", locale.gl)
+                if (locale.gl != "ZZ") parameter("gl", locale.gl)
                 parameter("q", query)
                 userAgent(YouTubeClient.WEB.userAgent)
             }

@@ -24,6 +24,7 @@ internal object YouTubeCountParser {
                 ?.takeIf(String::isNotBlank)
                 ?.let { matchSuffix(rest, suffixSource.suffixes(it)) }
                 ?: matchSuffix(rest, ENGLISH_SUFFIXES)
+                ?: matchSuffix(rest, UZBEK_SUFFIXES)
                 ?: 1L
         return runCatching { value.multiply(BigDecimal.valueOf(multiplier)).toLong() }.getOrNull()
     }
@@ -31,6 +32,10 @@ internal object YouTubeCountParser {
     private val NUMBER = Regex("""[0-9](?:[0-9.,'’ ٫٬]*[0-9])?""")
 
     private val ENGLISH_SUFFIXES = mapOf("k" to 1_000L, "m" to 1_000_000L, "b" to 1_000_000_000L)
+
+    // Uzbek abbreviates "2,4 ming" (thousand), "1,3 mln" and "1 mlrd"; kept here so a count reads
+    // right even when the device's ICU data has no Uzbek compact table.
+    private val UZBEK_SUFFIXES = mapOf("ming" to 1_000L, "mln" to 1_000_000L, "mlrd" to 1_000_000_000L)
 
     // A grouping separator is always followed by three digits and a compact decimal never is, so the
     // text itself tells "2,4 M" from "334.435" without trusting the locale's symbols, which differ
