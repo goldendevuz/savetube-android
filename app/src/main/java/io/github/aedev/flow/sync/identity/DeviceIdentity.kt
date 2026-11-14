@@ -71,7 +71,7 @@ class DeviceIdentity
 
         private fun defaultDeviceName(): String {
             val model = Build.MODEL?.trim().orEmpty()
-            return if (model.isEmpty()) "Flow (Android)" else "Flow ($model)"
+            return if (model.isEmpty()) "SaveTube (Android)" else "SaveTube ($model)"
         }
 
         companion object {

@@ -593,9 +593,5 @@ fun FlowApp(
             navController.navigate(TIMES_UP_ROUTE) { launchSingleTop = true }
         }
 
-        DonationPromptHost(
-            enabled = needsOnboarding == false && !isInPipMode && !playerVisible,
-            onNavigateToDonations = { navController.navigate("donations") },
-        )
     }
 }
