@@ -20,7 +20,7 @@ class ContentSettingsViewModel
         val homeNewVideosButton = preferences.homeNewVideosButtonEnabled.asState(true)
         val continueWatching = preferences.continueWatchingEnabled.asState(true)
         val homeShortsShelf = preferences.homeShortsShelfEnabled.asState(true)
-        val homeSubscriptions = preferences.homeSubscriptionsEnabled.asState(true)
+        val homeFeedScope = preferences.homeFeedScope.asState("off")
         val hideWatchedHome = preferences.hideWatchedVideosFromHome.asState(false)
 
         val subsVideos = preferences.subscriptionShowVideos.asState(true)
@@ -66,7 +66,7 @@ class ContentSettingsViewModel
 
         fun setHomeShortsShelf(value: Boolean) = write { preferences.setHomeShortsShelfEnabled(value) }
 
-        fun setHomeSubscriptions(value: Boolean) = write { preferences.setHomeSubscriptionsEnabled(value) }
+        fun setHomeFeedScope(value: String) = write { preferences.setHomeFeedScope(value) }
 
         fun setHideWatchedHome(value: Boolean) = write { preferences.setHideWatchedVideosFromHome(value) }
 

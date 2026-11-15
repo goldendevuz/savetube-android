@@ -5066,4 +5066,10 @@
     <string name="content_settings_home_duration_g7">G7 · 1–2 hours</string>
     <string name="content_settings_home_duration_g8">G8 · over 2 hours</string>
     <string name="settings_keywords_home_duration">length, duration, short, long, minutes, G1, G8, filter</string>
+    <string name="content_settings_home_feed_scope_title">Where Home draws from</string>
+    <string name="content_settings_home_feed_scope_dialog_body">Off mixes subscriptions with new channels. Only my subscriptions shows familiar content from channels you follow, and fills the page from what is left when the newest videos run out. Only channels I don\'t follow shows new content.</string>
+    <string name="content_settings_home_feed_scope_off">Off (mix)</string>
+    <string name="content_settings_home_feed_scope_subscribed">Only my subscriptions</string>
+    <string name="content_settings_home_feed_scope_unsubscribed">Only channels I don\'t follow</string>
+    <string name="settings_keywords_home_feed_scope">subscriptions, new, familiar, discover, channels, filter</string>
 </resources>

@@ -7,6 +7,8 @@ package io.github.aedev.flow.ui.screens.home
 internal data class HomeSubscriptionScope(
     val boosted: Set<String>,
     val hidden: Set<String>,
+    /** When set, Home shows only videos from these channels (the "only my subscriptions" choice). */
+    val onlyChannels: Set<String>? = null,
 ) {
     companion object {
         fun of(

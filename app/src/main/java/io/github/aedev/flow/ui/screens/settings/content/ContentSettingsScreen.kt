@@ -49,6 +49,7 @@ internal fun ContentSettingsScreen(
     var showMinViewsDialog by rememberSaveable { mutableStateOf(false) }
     var showMinSubscribersDialog by rememberSaveable { mutableStateOf(false) }
     var showDurationGroupDialog by rememberSaveable { mutableStateOf(false) }
+    var showFeedScopeDialog by rememberSaveable { mutableStateOf(false) }
 
     SettingsPage(
         title = stringResource(R.string.settings_content_title),
@@ -62,7 +63,10 @@ internal fun ContentSettingsScreen(
             switch(ContentIndex.homeNewVideosButton, viewModel.homeNewVideosButton, viewModel::setHomeNewVideosButton)
             switch(ContentIndex.continueWatching, viewModel.continueWatching, viewModel::setContinueWatching)
             switch(ContentIndex.homeShortsShelf, viewModel.homeShortsShelf, viewModel::setHomeShortsShelf, enabled = shortsContent)
-            switch(ContentIndex.homeSubscriptions, viewModel.homeSubscriptions, viewModel::setHomeSubscriptions)
+            choice(ContentIndex.homeSubscriptions, onClick = { showFeedScopeDialog = true }) {
+                val value by viewModel.homeFeedScope.collectAsStateWithLifecycle()
+                feedScopeLabel(value)
+            }
             switch(ContentIndex.hideWatchedHome, viewModel.hideWatchedHome, viewModel::setHideWatchedHome)
             choice(ContentIndex.homeMinViews, onClick = { showMinViewsDialog = true }) {
                 val value by viewModel.homeMinViews.collectAsStateWithLifecycle()
@@ -177,6 +181,18 @@ internal fun ContentSettingsScreen(
         )
     }
 
+    if (showFeedScopeDialog) {
+        val value by viewModel.homeFeedScope.collectAsStateWithLifecycle()
+        FlowChoiceDialog(
+            title = stringResource(R.string.content_settings_home_feed_scope_title),
+            description = stringResource(R.string.content_settings_home_feed_scope_dialog_body),
+            options = FEED_SCOPE_KEYS.map { FlowChoice(it, feedScopeLabel(it)) },
+            selected = value,
+            onSelect = viewModel::setHomeFeedScope,
+            onDismiss = { showFeedScopeDialog = false },
+        )
+    }
+
     if (showDurationGroupDialog) {
         val value by viewModel.homeDurationGroup.collectAsStateWithLifecycle()
         FlowChoiceDialog(
@@ -265,5 +281,17 @@ private fun durationGroupLabel(key: String): String =
             "g7" -> R.string.content_settings_home_duration_g7
             "g8" -> R.string.content_settings_home_duration_g8
             else -> R.string.content_settings_home_duration_any
+        },
+    )
+
+private val FEED_SCOPE_KEYS = listOf("off", "subscribed", "unsubscribed")
+
+@Composable
+private fun feedScopeLabel(key: String): String =
+    stringResource(
+        when (key) {
+            "subscribed" -> R.string.content_settings_home_feed_scope_subscribed
+            "unsubscribed" -> R.string.content_settings_home_feed_scope_unsubscribed
+            else -> R.string.content_settings_home_feed_scope_off
         },
     )

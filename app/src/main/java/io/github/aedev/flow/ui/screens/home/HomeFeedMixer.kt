@@ -32,10 +32,16 @@ internal fun homeFeedQuotas(
     subCount: Int,
     totalInteractions: Int,
     hasNeighbours: Boolean = false,
+    subscribedOnly: Boolean = false,
 ): Map<FeedSource, Int> {
     val slots = remaining.coerceAtLeast(0)
     if (slots == 0) {
         return FeedSource.entries.associateWith { 0 }
+    }
+    // "Only my subscriptions": the page comes from the followed channels; the other lanes only fill what the
+    // subscriptions cannot, and they hold followed channels alone.
+    if (subscribedOnly) {
+        return FeedSource.entries.associateWith { if (it == FeedSource.SUBS) slots else 0 }
     }
 
     val subs =

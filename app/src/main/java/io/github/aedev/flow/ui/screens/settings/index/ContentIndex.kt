@@ -99,8 +99,8 @@ internal object ContentIndex {
     val homeSubscriptions =
         SettingEntry(
             key = "content.home.subscriptions",
-            title = R.string.content_settings_home_subscriptions_title,
-            summary = R.string.content_settings_home_subscriptions_subtitle,
+            title = R.string.content_settings_home_feed_scope_title,
+            keywords = R.string.settings_keywords_home_feed_scope,
             section = R.string.settings_section_home,
             destination = page,
         )
