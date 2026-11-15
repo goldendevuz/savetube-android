@@ -5072,4 +5072,14 @@
     <string name="content_settings_home_feed_scope_subscribed">Only my subscriptions</string>
     <string name="content_settings_home_feed_scope_unsubscribed">Only channels I don\'t follow</string>
     <string name="settings_keywords_home_feed_scope">subscriptions, new, familiar, discover, channels, filter</string>
+    <string name="home_empty_title">No content found</string>
+    <string name="home_empty_filters_title">Filters that are on:</string>
+    <string name="home_empty_filters_hint">These hide videos from Home. Loosen them in Settings, Feeds and content.</string>
+    <string name="home_filter_min_views">Videos under %1$s views are hidden</string>
+    <string name="home_filter_min_subscribers">Channels under %1$s subscribers are hidden</string>
+    <string name="home_filter_length">Only videos of this length: %1$s</string>
+    <string name="home_filter_music">Music videos are hidden</string>
+    <string name="home_filter_scope_subscribed">Only channels you follow</string>
+    <string name="home_filter_scope_unsubscribed">Only channels you do not follow</string>
+    <string name="home_filter_seen">Videos you have already seen are hidden</string>
 </resources>

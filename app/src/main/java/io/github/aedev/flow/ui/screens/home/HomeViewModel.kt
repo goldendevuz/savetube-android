@@ -548,6 +548,23 @@ class HomeViewModel
             return if (scope == "subscribed") base.copy(onlyChannels = subscriptions) else base
         }
 
+        /** The Home settings that can leave the feed empty, for the page shown when Home has nothing to show. */
+        val filterChoices: StateFlow<HomeFilterChoices> =
+            combine(
+                combine(
+                    playerPreferences.homeMinViews,
+                    playerPreferences.homeMinSubscribers,
+                    playerPreferences.homeDurationGroup,
+                ) { views, subscribers, duration -> Triple(views, subscribers, duration) },
+                combine(
+                    playerPreferences.homeHideMusicVideos,
+                    playerPreferences.homeFeedScope,
+                    playerPreferences.hideWatchedVideosFromHome,
+                ) { music, scope, watched -> Triple(music, scope, watched) },
+            ) { (views, subscribers, duration), (music, scope, watched) ->
+                HomeFilterChoices(views, subscribers, duration, music, scope, watched)
+            }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(UI_STATE_SUBSCRIPTION_TIMEOUT_MS), HomeFilterChoices())
+
         private val subscriberStore by lazy { io.github.aedev.flow.data.local.ChannelSubscriberStore(appContext) }
 
         private suspend fun homeContentFilters(): HomeContentFilters {
@@ -556,7 +573,8 @@ class HomeViewModel
                 minViews = playerPreferences.homeMinViews.first(),
                 minSubscribers = minSubscribers,
                 hideMusicVideos = playerPreferences.homeHideMusicVideos.first(),
-                durationGroup = playerPreferences.homeDurationGroup.first(),
+                // "Up to 1 minute" is no longer offered (Home holds no Shorts); a choice saved before is any length.
+                durationGroup = playerPreferences.homeDurationGroup.first().takeUnless { it == "g1" } ?: "any",
                 subscribers = if (minSubscribers > 0L) subscriberStore.fresh() else emptyMap(),
             )
         }

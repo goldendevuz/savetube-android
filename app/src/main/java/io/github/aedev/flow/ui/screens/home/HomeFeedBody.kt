@@ -166,6 +166,7 @@ internal fun HomeFeedBody(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val newVideosButtonEnabled by viewModel.newVideosButtonEnabled.collectAsStateWithLifecycle()
+    val filterChoices by viewModel.filterChoices.collectAsStateWithLifecycle()
     when {
         !homeFeedEnabled -> {
             HomeFeedDisabledState(modifier = Modifier.fillMaxSize())
@@ -199,6 +200,15 @@ internal fun HomeFeedBody(
                 error = uiState.error ?: stringResource(R.string.error_occurred),
                 onRetry = { viewModel.retry() },
             )
+        }
+
+        !uiState.isLoading &&
+            uiState.error == null &&
+            uiState.videos.isEmpty() &&
+            uiState.shorts.isEmpty() &&
+            uiState.continueWatchingVideos.isEmpty() &&
+            filterChoices.hasActiveFilter -> {
+            HomeEmptyState(choices = filterChoices)
         }
 
         else -> {

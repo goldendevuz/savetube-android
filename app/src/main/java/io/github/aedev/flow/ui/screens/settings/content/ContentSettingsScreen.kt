@@ -199,7 +199,7 @@ internal fun ContentSettingsScreen(
             title = stringResource(R.string.content_settings_home_duration_title),
             description = stringResource(R.string.content_settings_home_duration_dialog_body),
             options = DURATION_GROUP_KEYS.map { FlowChoice(it, durationGroupLabel(it)) },
-            selected = value,
+            selected = if (value == "g1") "any" else value,
             onSelect = viewModel::setHomeDurationGroup,
             onDismiss = { showDurationGroupDialog = false },
         )
@@ -266,7 +266,8 @@ private fun minCountLabel(value: Long): String =
         }
     }
 
-private val DURATION_GROUP_KEYS = listOf("any", "g1", "g2", "g3", "g4", "g5", "g6", "g7", "g8")
+// "Up to 1 minute" (g1) is not offered: Home holds no Shorts, so it always left the page empty.
+private val DURATION_GROUP_KEYS = listOf("any", "g2", "g3", "g4", "g5", "g6", "g7", "g8")
 
 @Composable
 private fun durationGroupLabel(key: String): String =
