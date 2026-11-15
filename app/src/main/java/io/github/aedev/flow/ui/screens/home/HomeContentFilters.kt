@@ -2,7 +2,7 @@ package io.github.aedev.flow.ui.screens.home
 
 import io.github.aedev.flow.data.model.Video
 
-/** Phrases that mark a title as a song or its video, matched in lower case. */
+/** Phrases that mark a title as a song or its video, matched anywhere in the lower-case title. */
 private val MUSIC_TITLE_MARKERS =
     listOf(
         "official music video",
@@ -16,6 +16,17 @@ private val MUSIC_TITLE_MARKERS =
         "music video",
         "mood video",
         "visualizer",
+        "full album",
+        "karaoke",
+        "nightcore",
+        "mashup",
+        "medley",
+        "nasheed",
+        "nashid",
+        "anasheed",
+        "нашид",
+        "lofi",
+        "lo-fi",
         "(audio)",
         "[audio]",
         "(mv)",
@@ -28,20 +39,73 @@ private val MUSIC_TITLE_MARKERS =
         " feat. ",
         " ft. ",
         "клип",
+        "текст песни",
+        "слова песни",
+        "песн",
+        "музык",
+        "ремикс",
+        "кавер",
+        "караоке",
+        "саундтрек",
         "klip",
+        "qo'shiq",
+        "qo'shig",
+        "qoshiq",
+        "musiqa",
+        "ashula",
+        "tarona",
+        "konsert",
+        "consert",
+        "şarkı",
+        "müzik",
+        "sözleri",
+        "♪",
+        "♫",
+        "🎵",
+        "🎶",
     )
 
+/** Words that mark a title as a song when they stand alone (so "ost" is not found inside "post"). */
+private val MUSIC_TITLE_WORDS =
+    setOf(
+        "song",
+        "songs",
+        "lyric",
+        "remix",
+        "acoustic",
+        "instrumental",
+        "soundtrack",
+        "ost",
+        "album",
+        "concert",
+        "slowed",
+        "mp3",
+    )
+
+/** Parts of a channel name that only publish music. */
+private val MUSIC_CHANNEL_MARKERS = listOf("vevo", "music", "musiqa", "музык", "müzik")
+
+/** The lower-case form text is matched in: the different apostrophes Uzbek is typed with become `'`. */
+internal fun normalizedForMusic(text: String): String =
+    text.lowercase().replace('\u02bb', '\'').replace('\u02bc', '\'').replace('\u2019', '\'').replace('\u2018', '\'').replace('`', '\'').replace('\u00b4', '\'')
+
 /**
- * A best guess at which videos are music videos: the card carries no category, so this goes by what the
- * title and channel say. It catches the usual labels, VEVO and "- Topic" channels, and misses a song
- * whose title says nothing of the kind.
+ * A best guess at whether a title and channel are a song or a music video: the card carries no category, so
+ * this goes by what they say. The same rule, with the same lists, runs on every device and for every viewer
+ * who turns on "Hide music videos" (desktop: home_feed/music_video.rs).
  */
-internal fun looksLikeMusicVideo(video: Video): Boolean {
-    val channel = video.channelName.lowercase()
-    if (channel.endsWith(" - topic") || channel.endsWith("vevo") || channel.contains("vevo ")) return true
-    val title = video.title.lowercase()
-    return MUSIC_TITLE_MARKERS.any { title.contains(it) }
+internal fun looksLikeMusic(
+    title: String,
+    channelName: String,
+): Boolean {
+    val channel = normalizedForMusic(channelName)
+    if (channel.endsWith(" - topic") || MUSIC_CHANNEL_MARKERS.any { channel.contains(it) }) return true
+    val lowerTitle = normalizedForMusic(title)
+    if (MUSIC_TITLE_MARKERS.any { lowerTitle.contains(it) }) return true
+    return lowerTitle.split(Regex("[^\\p{L}\\p{N}]+")).any { it in MUSIC_TITLE_WORDS }
 }
+
+internal fun looksLikeMusicVideo(video: Video): Boolean = looksLikeMusic(video.title, video.channelName)
 
 /** The video length groups of the CRM's G1 to G8 filter, in seconds: from (included) to (excluded, null for no limit). */
 internal val DURATION_GROUPS: Map<String, Pair<Int, Int?>> =
@@ -56,14 +120,26 @@ internal val DURATION_GROUPS: Map<String, Pair<Int, Int?>> =
         "g8" to (7_200 to null),
     )
 
-/** Whether [video] is outside [group] ("g1" to "g8"). Live and upcoming videos and ones with no known length are never ruled out. */
-internal fun isOutsideDurationGroup(
+/** The groups in a saved choice: keys joined by commas ("g2,g4"). "any", empty and unknown keys, and the old "g1", give none. */
+internal fun parseDurationGroups(value: String): List<String> {
+    val chosen = value.split(',').map { it.trim().lowercase() }.toSet()
+    return DURATION_GROUPS.keys.filter { it != "g1" && it in chosen }
+}
+
+/** The saved choice for a list of groups, in length order: "any" when there is none. */
+internal fun serializeDurationGroups(groups: Collection<String>): String =
+    DURATION_GROUPS.keys.filter { it != "g1" && it in groups }.joinToString(",").ifEmpty { "any" }
+
+/** Whether [video] is outside every group in [groups]. Live and upcoming videos and ones with no known length are never ruled out. */
+internal fun isOutsideDurationGroups(
     video: Video,
-    group: String,
+    groups: List<String>,
 ): Boolean {
-    val (from, to) = DURATION_GROUPS[group] ?: return false
-    if (video.isLive || video.isUpcoming || video.duration <= 0) return false
-    return video.duration < from || (to != null && video.duration >= to)
+    if (groups.isEmpty() || video.isLive || video.isUpcoming || video.duration <= 0) return false
+    return groups.none { key ->
+        val (from, to) = DURATION_GROUPS[key] ?: return@none false
+        video.duration >= from && (to == null || video.duration < to)
+    }
 }
 
 /**
@@ -77,18 +153,34 @@ internal data class HomeContentFilters(
     val hideMusicVideos: Boolean = false,
     val durationGroup: String = "any",
     val subscribers: Map<String, Long> = emptyMap(),
+    val hideEntertainment: Boolean = false,
+    val hideGaming: Boolean = false,
+    val languages: String = "any",
 ) {
+    private val durationGroups: List<String> = parseDurationGroups(durationGroup)
+    private val languageCodes: List<String> = parseHomeLanguages(languages)
+
     val isActive: Boolean
-        get() = minViews > 0L || minSubscribers > 0L || hideMusicVideos || durationGroup in DURATION_GROUPS
+        get() =
+            minViews > 0L ||
+                minSubscribers > 0L ||
+                hideMusicVideos ||
+                hideEntertainment ||
+                hideGaming ||
+                durationGroups.isNotEmpty() ||
+                languageCodes.isNotEmpty()
 
     fun hides(video: Video): Boolean {
         if (!isActive) return false
         if (minViews > 0L && !video.isLive && !video.isUpcoming && video.viewCount < minViews) return true
-        if (durationGroup in DURATION_GROUPS && isOutsideDurationGroup(video, durationGroup)) return true
+        if (isOutsideDurationGroups(video, durationGroups)) return true
         if (minSubscribers > 0L) {
             val count = subscribers[video.channelId]
             if (count == null || count < minSubscribers) return true
         }
-        return hideMusicVideos && looksLikeMusicVideo(video)
+        if (hideMusicVideos && looksLikeMusicVideo(video)) return true
+        if (hideEntertainment && looksLikeEntertainment(video.title)) return true
+        if (hideGaming && looksLikeGaming(video.title)) return true
+        return isOutsideLanguages(video.title, languageCodes)
     }
 }

@@ -39,6 +39,9 @@ class ContentSettingsViewModel
         val homeMinViews = preferences.homeMinViews.asState(0L)
         val homeMinSubscribers = preferences.homeMinSubscribers.asState(0L)
         val homeHideMusic = preferences.homeHideMusicVideos.asState(false)
+        val homeHideMediaClips = preferences.homeHideMediaClips.asState(true)
+        val homeHideGaming = preferences.homeHideGaming.asState(false)
+        val homeLanguages = preferences.homeLanguages.asState("any")
         val homeDurationGroup = preferences.homeDurationGroup.asState("any")
         val homePinFreshSubs = preferences.homePinFreshSubs.asState(true)
 
@@ -99,6 +102,12 @@ class ContentSettingsViewModel
         fun setHomeMinSubscribers(value: Long) = write { preferences.setHomeMinSubscribers(value) }
 
         fun setHomeHideMusic(value: Boolean) = write { preferences.setHomeHideMusicVideos(value) }
+
+        fun setHomeHideMediaClips(value: Boolean) = write { preferences.setHomeHideMediaClips(value) }
+
+        fun setHomeHideGaming(value: Boolean) = write { preferences.setHomeHideGaming(value) }
+
+        fun setHomeLanguages(value: String) = write { preferences.setHomeLanguages(value) }
 
         fun setHomeDurationGroup(value: String) = write { preferences.setHomeDurationGroup(value) }
 

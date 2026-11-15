@@ -1,5 +1,19 @@
 package io.github.aedev.flow.ui.screens.settings.content
 
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -22,6 +36,12 @@ import io.github.aedev.flow.ui.components.shared.FlowChoice
 import io.github.aedev.flow.ui.components.shared.FlowChoiceDialog
 import io.github.aedev.flow.ui.components.shared.FlowSwitchRow
 import io.github.aedev.flow.ui.screens.settings.index.ContentIndex
+import io.github.aedev.flow.ui.screens.home.HOME_LANGUAGE_CODES
+import io.github.aedev.flow.ui.screens.home.homeLanguageName
+import io.github.aedev.flow.ui.screens.home.parseDurationGroups
+import io.github.aedev.flow.ui.screens.home.parseHomeLanguages
+import io.github.aedev.flow.ui.screens.home.serializeHomeLanguages
+import io.github.aedev.flow.ui.screens.home.serializeDurationGroups
 import io.github.aedev.flow.ui.screens.settings.index.DestinationIndex
 
 /**
@@ -48,6 +68,7 @@ internal fun ContentSettingsScreen(
     var showSharedLinksDialog by rememberSaveable { mutableStateOf(false) }
     var showMinViewsDialog by rememberSaveable { mutableStateOf(false) }
     var showMinSubscribersDialog by rememberSaveable { mutableStateOf(false) }
+    var showLanguagesDialog by rememberSaveable { mutableStateOf(false) }
     var showDurationGroupDialog by rememberSaveable { mutableStateOf(false) }
     var showFeedScopeDialog by rememberSaveable { mutableStateOf(false) }
 
@@ -78,9 +99,15 @@ internal fun ContentSettingsScreen(
             }
             choice(ContentIndex.homeDurationGroup, onClick = { showDurationGroupDialog = true }) {
                 val value by viewModel.homeDurationGroup.collectAsStateWithLifecycle()
-                durationGroupLabel(value)
+                durationGroupsLabel(value)
             }
             switch(ContentIndex.homeHideMusic, viewModel.homeHideMusic, viewModel::setHomeHideMusic)
+            switch(ContentIndex.homeHideMediaClips, viewModel.homeHideMediaClips, viewModel::setHomeHideMediaClips)
+            switch(ContentIndex.homeHideGaming, viewModel.homeHideGaming, viewModel::setHomeHideGaming)
+            choice(ContentIndex.homeLanguages, onClick = { showLanguagesDialog = true }) {
+                val value by viewModel.homeLanguages.collectAsStateWithLifecycle()
+                homeLanguagesLabel(value)
+            }
             switch(ContentIndex.homePinFreshSubs, viewModel.homePinFreshSubs, viewModel::setHomePinFreshSubs)
         }
         group(key = "content.music", header = R.string.screen_title_music) {
@@ -195,13 +222,27 @@ internal fun ContentSettingsScreen(
 
     if (showDurationGroupDialog) {
         val value by viewModel.homeDurationGroup.collectAsStateWithLifecycle()
-        FlowChoiceDialog(
+        MultiChoiceDialog(
             title = stringResource(R.string.content_settings_home_duration_title),
-            description = stringResource(R.string.content_settings_home_duration_dialog_body),
-            options = DURATION_GROUP_KEYS.map { FlowChoice(it, durationGroupLabel(it)) },
-            selected = value,
-            onSelect = viewModel::setHomeDurationGroup,
+            body = stringResource(R.string.content_settings_home_duration_dialog_body),
+            noneLabel = durationGroupLabel("any"),
+            options = DURATION_GROUP_KEYS.map { it to durationGroupLabel(it) },
+            selected = parseDurationGroups(value),
+            onChange = { viewModel.setHomeDurationGroup(serializeDurationGroups(it)) },
             onDismiss = { showDurationGroupDialog = false },
+        )
+    }
+
+    if (showLanguagesDialog) {
+        val value by viewModel.homeLanguages.collectAsStateWithLifecycle()
+        MultiChoiceDialog(
+            title = stringResource(R.string.content_settings_home_languages_title),
+            body = stringResource(R.string.content_settings_home_languages_dialog_body),
+            noneLabel = stringResource(R.string.content_settings_home_languages_all),
+            options = HOME_LANGUAGE_CODES.map { it to homeLanguageName(it) },
+            selected = parseHomeLanguages(value),
+            onChange = { viewModel.setHomeLanguages(serializeHomeLanguages(it)) },
+            onDismiss = { showLanguagesDialog = false },
         )
     }
 
@@ -266,7 +307,76 @@ private fun minCountLabel(value: Long): String =
         }
     }
 
-private val DURATION_GROUP_KEYS = listOf("any", "g1", "g2", "g3", "g4", "g5", "g6", "g7", "g8")
+// "Up to 1 minute" (g1) is not offered: Home holds no Shorts, so it always left the page empty.
+private val DURATION_GROUP_KEYS = listOf("g2", "g3", "g4", "g5", "g6", "g7", "g8")
+
+/** The row's value: every chosen length range, or "Any length". */
+@Composable
+private fun durationGroupsLabel(value: String): String {
+    val groups = parseDurationGroups(value)
+    if (groups.isEmpty()) return durationGroupLabel("any")
+    // A composable call cannot sit inside the joinToString lambda, so the labels are read first.
+    val labels = groups.map { durationGroupLabel(it) }
+    return labels.joinToString(", ")
+}
+
+/** The row's value: every chosen language, or "All languages". */
+@Composable
+private fun homeLanguagesLabel(value: String): String {
+    val codes = parseHomeLanguages(value)
+    if (codes.isEmpty()) return stringResource(R.string.content_settings_home_languages_all)
+    val names = codes.map { homeLanguageName(it) }
+    return names.joinToString(", ")
+}
+
+/**
+ * Pick one or several options (a length range, a language); [noneLabel] clears the choice, which means no
+ * limit. Nothing is saved as a list longer than [options].
+ */
+@Composable
+private fun MultiChoiceDialog(
+    title: String,
+    body: String,
+    noneLabel: String,
+    options: List<Pair<String, String>>,
+    selected: List<String>,
+    onChange: (List<String>) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(title) },
+        text = {
+            Column(Modifier.verticalScroll(rememberScrollState())) {
+                Text(body, modifier = Modifier.padding(bottom = 8.dp))
+                DurationGroupRow(label = noneLabel, checked = selected.isEmpty(), onClick = { onChange(emptyList()) })
+                options.forEach { (key, label) ->
+                    DurationGroupRow(
+                        label = label,
+                        checked = key in selected,
+                        onClick = { onChange(if (key in selected) selected - key else selected + key) },
+                    )
+                }
+            }
+        },
+        confirmButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.done)) } },
+    )
+}
+
+@Composable
+private fun DurationGroupRow(
+    label: String,
+    checked: Boolean,
+    onClick: () -> Unit,
+) {
+    Row(
+        Modifier.fillMaxWidth().clickable(onClick = onClick).padding(vertical = 2.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Checkbox(checked = checked, onCheckedChange = { onClick() })
+        Text(label, modifier = Modifier.padding(start = 4.dp))
+    }
+}
 
 @Composable
 private fun durationGroupLabel(key: String): String =

@@ -263,18 +263,28 @@ class HomeViewModel
 
             viewModelScope.launch(PerformanceDispatcher.diskIO) {
                 combine(
-                    viewHistory.getVideoHistoryFlow(),
-                    playerPreferences.hideWatchedVideosFromHome,
-                    playerPreferences.watchedThreshold,
-                    playerPreferences.continueWatchingEnabled,
-                    playerPreferences.hideWatchedShorts,
-                ) { history, hideWatched, threshold, continueWatchingEnabled, hideWatchedShorts ->
+                    combine(
+                        viewHistory.getVideoHistoryFlow(),
+                        playerPreferences.hideWatchedVideosFromHome,
+                        playerPreferences.watchedThreshold,
+                        playerPreferences.continueWatchingEnabled,
+                        playerPreferences.hideWatchedShorts,
+                    ) { history, hideWatched, threshold, continueWatchingEnabled, hideWatchedShorts ->
+                        HomeHistoryInputs(history, hideWatched, threshold, continueWatchingEnabled, hideWatchedShorts)
+                    },
+                    playerPreferences.homeHideMusicVideos,
+                    playerPreferences.homeHideMediaClips,
+                    playerPreferences.homeHideGaming,
+                ) { inputs, hideMusic, hideEntertainment, hideGaming ->
                     filterHomeHistory(
-                        history = history,
-                        hideWatchedVideos = hideWatched,
-                        watchedThreshold = threshold,
-                        continueWatchingEnabled = continueWatchingEnabled,
-                        hideWatchedShorts = hideWatchedShorts,
+                        history = inputs.history,
+                        hideWatchedVideos = inputs.hideWatched,
+                        watchedThreshold = inputs.threshold,
+                        continueWatchingEnabled = inputs.continueWatchingEnabled,
+                        hideWatchedShorts = inputs.hideWatchedShorts,
+                        hideMusicVideos = hideMusic,
+                        hideEntertainment = hideEntertainment,
+                        hideGaming = hideGaming,
                     )
                 }.collect { result ->
                     watchedVideoIds.value = result.watchedVideoIds
@@ -548,6 +558,38 @@ class HomeViewModel
             return if (scope == "subscribed") base.copy(onlyChannels = subscriptions) else base
         }
 
+        /** The Home settings that can leave the feed empty, for the page shown when Home has nothing to show. */
+        val filterChoices: StateFlow<HomeFilterChoices> =
+            combine(
+                combine(
+                    playerPreferences.homeMinViews,
+                    playerPreferences.homeMinSubscribers,
+                    playerPreferences.homeDurationGroup,
+                ) { views, subscribers, duration -> Triple(views, subscribers, duration) },
+                combine(
+                    playerPreferences.homeHideMusicVideos,
+                    playerPreferences.homeFeedScope,
+                    playerPreferences.hideWatchedVideosFromHome,
+                ) { music, scope, watched -> Triple(music, scope, watched) },
+                combine(
+                    playerPreferences.homeHideMediaClips,
+                    playerPreferences.homeHideGaming,
+                    playerPreferences.homeLanguages,
+                ) { entertainment, gaming, languages -> Triple(entertainment, gaming, languages) },
+            ) { (views, subscribers, duration), (music, scope, watched), (entertainment, gaming, languages) ->
+                HomeFilterChoices(
+                    minViews = views,
+                    minSubscribers = subscribers,
+                    durationGroup = duration,
+                    hideMusicVideos = music,
+                    feedScope = scope,
+                    hideWatched = watched,
+                    hideEntertainment = entertainment,
+                    hideGaming = gaming,
+                    languages = languages,
+                )
+            }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(UI_STATE_SUBSCRIPTION_TIMEOUT_MS), HomeFilterChoices())
+
         private val subscriberStore by lazy { io.github.aedev.flow.data.local.ChannelSubscriberStore(appContext) }
 
         private suspend fun homeContentFilters(): HomeContentFilters {
@@ -556,8 +598,12 @@ class HomeViewModel
                 minViews = playerPreferences.homeMinViews.first(),
                 minSubscribers = minSubscribers,
                 hideMusicVideos = playerPreferences.homeHideMusicVideos.first(),
+                // One or several length groups, joined by commas; the old "g1" is read as any length.
                 durationGroup = playerPreferences.homeDurationGroup.first(),
                 subscribers = if (minSubscribers > 0L) subscriberStore.fresh() else emptyMap(),
+                hideEntertainment = playerPreferences.homeHideMediaClips.first(),
+                hideGaming = playerPreferences.homeHideGaming.first(),
+                languages = playerPreferences.homeLanguages.first(),
             )
         }
 
