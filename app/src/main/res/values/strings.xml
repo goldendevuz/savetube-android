@@ -5055,7 +5055,7 @@
     <string name="subscriptions_sort_added_newest">Subscribed recently</string>
     <string name="subscriptions_sort_added_oldest">Subscribed longest ago</string>
     <string name="content_settings_home_duration_title">Show only videos of this length</string>
-    <string name="content_settings_home_duration_dialog_body">Home keeps only videos in the chosen length range. Live streams are always kept.</string>
+    <string name="content_settings_home_duration_dialog_body">Home keeps only videos in the length ranges you tick: choose one or several. Live streams are always kept.</string>
     <string name="content_settings_home_duration_any">Any length</string>
     <string name="content_settings_home_duration_g1">Up to 1 minute</string>
     <string name="content_settings_home_duration_g2">1–5 minutes</string>

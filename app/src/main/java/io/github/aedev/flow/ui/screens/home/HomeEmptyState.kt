@@ -17,7 +17,7 @@ import androidx.compose.ui.unit.dp
 import io.github.aedev.flow.R
 
 /** The Home settings that can leave the feed empty, as the viewer chose them. */
-internal data class HomeFilterChoices(
+data class HomeFilterChoices(
     val minViews: Long = 0L,
     val minSubscribers: Long = 0L,
     val durationGroup: String = "any",
@@ -30,7 +30,7 @@ internal data class HomeFilterChoices(
         get() =
             minViews > 0L ||
                 minSubscribers > 0L ||
-                (durationGroup in DURATION_GROUPS && durationGroup != "g1") ||
+                parseDurationGroups(durationGroup).isNotEmpty() ||
                 hideMusicVideos ||
                 feedScope == "subscribed" ||
                 feedScope == "unsubscribed" ||
@@ -52,8 +52,8 @@ internal fun HomeEmptyState(
             if (choices.minSubscribers > 0L) {
                 add(stringResource(R.string.home_filter_min_subscribers, "%,d".format(choices.minSubscribers)))
             }
-            val lengthLabel = durationGroupName(choices.durationGroup)
-            if (lengthLabel != null) add(stringResource(R.string.home_filter_length, lengthLabel))
+            val lengthLabels = parseDurationGroups(choices.durationGroup).mapNotNull { durationGroupName(it) }
+            if (lengthLabels.isNotEmpty()) add(stringResource(R.string.home_filter_length, lengthLabels.joinToString(", ")))
             if (choices.hideMusicVideos) add(stringResource(R.string.home_filter_music))
             if (choices.feedScope == "subscribed") add(stringResource(R.string.home_filter_scope_subscribed))
             if (choices.feedScope == "unsubscribed") add(stringResource(R.string.home_filter_scope_unsubscribed))

@@ -263,18 +263,24 @@ class HomeViewModel
 
             viewModelScope.launch(PerformanceDispatcher.diskIO) {
                 combine(
-                    viewHistory.getVideoHistoryFlow(),
-                    playerPreferences.hideWatchedVideosFromHome,
-                    playerPreferences.watchedThreshold,
-                    playerPreferences.continueWatchingEnabled,
-                    playerPreferences.hideWatchedShorts,
-                ) { history, hideWatched, threshold, continueWatchingEnabled, hideWatchedShorts ->
+                    combine(
+                        viewHistory.getVideoHistoryFlow(),
+                        playerPreferences.hideWatchedVideosFromHome,
+                        playerPreferences.watchedThreshold,
+                        playerPreferences.continueWatchingEnabled,
+                        playerPreferences.hideWatchedShorts,
+                    ) { history, hideWatched, threshold, continueWatchingEnabled, hideWatchedShorts ->
+                        HomeHistoryInputs(history, hideWatched, threshold, continueWatchingEnabled, hideWatchedShorts)
+                    },
+                    playerPreferences.homeHideMusicVideos,
+                ) { inputs, hideMusic ->
                     filterHomeHistory(
-                        history = history,
-                        hideWatchedVideos = hideWatched,
-                        watchedThreshold = threshold,
-                        continueWatchingEnabled = continueWatchingEnabled,
-                        hideWatchedShorts = hideWatchedShorts,
+                        history = inputs.history,
+                        hideWatchedVideos = inputs.hideWatched,
+                        watchedThreshold = inputs.threshold,
+                        continueWatchingEnabled = inputs.continueWatchingEnabled,
+                        hideWatchedShorts = inputs.hideWatchedShorts,
+                        hideMusicVideos = hideMusic,
                     )
                 }.collect { result ->
                     watchedVideoIds.value = result.watchedVideoIds
@@ -573,8 +579,8 @@ class HomeViewModel
                 minViews = playerPreferences.homeMinViews.first(),
                 minSubscribers = minSubscribers,
                 hideMusicVideos = playerPreferences.homeHideMusicVideos.first(),
-                // "Up to 1 minute" is no longer offered (Home holds no Shorts); a choice saved before is any length.
-                durationGroup = playerPreferences.homeDurationGroup.first().takeUnless { it == "g1" } ?: "any",
+                // One or several length groups, joined by commas; the old "g1" is read as any length.
+                durationGroup = playerPreferences.homeDurationGroup.first(),
                 subscribers = if (minSubscribers > 0L) subscriberStore.fresh() else emptyMap(),
             )
         }
