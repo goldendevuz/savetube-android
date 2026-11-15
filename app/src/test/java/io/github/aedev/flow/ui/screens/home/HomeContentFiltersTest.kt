@@ -30,6 +30,7 @@ class HomeContentFiltersTest {
         assertThat(looksLikeMusic("Любовь | текст песни", "Канал")).isTrue()
         assertThat(looksLikeMusic("Yangi qoʻshiq 2026", "Jon")).isTrue()
         assertThat(looksLikeMusic("Yeni şarkı sözleri", "Kanal")).isTrue()
+        assertThat(looksLikeMusic("Eng sara taronalar (2026)", "Jon")).isTrue()
         assertThat(looksLikeMusic("Anything", "Artist - Topic")).isTrue()
         assertThat(looksLikeMusic("Anything", "Sony Music")).isTrue()
     }
