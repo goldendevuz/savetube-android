@@ -286,11 +286,10 @@ private val DURATION_GROUP_KEYS = listOf("g2", "g3", "g4", "g5", "g6", "g7", "g8
 @Composable
 private fun durationGroupsLabel(value: String): String {
     val groups = parseDurationGroups(value)
-    return if (groups.isEmpty()) {
-        durationGroupLabel("any")
-    } else {
-        groups.joinToString(", ") { durationGroupLabel(it) }
-    }
+    if (groups.isEmpty()) return durationGroupLabel("any")
+    // A composable call cannot sit inside the joinToString lambda, so the labels are read first.
+    val labels = groups.map { durationGroupLabel(it) }
+    return labels.joinToString(", ")
 }
 
 /** Pick one or several length ranges; a video is kept when it fits any of them. Nothing picked is any length. */
