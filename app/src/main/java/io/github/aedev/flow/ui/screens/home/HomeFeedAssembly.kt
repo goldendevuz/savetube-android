@@ -230,6 +230,7 @@ internal fun assembleHomeFeed(
     subCount: Int,
     totalInteractions: Int,
     targetSize: Int = HOME_TARGET_SIZE,
+    subscribedOnly: Boolean = false,
 ): HomeFeedMix {
     val finalMix = mutableListOf<Video>()
     val usedChannelCounts = mutableMapOf<String, Int>()
@@ -248,7 +249,13 @@ internal fun assembleHomeFeed(
     }
 
     val remaining = (targetSize - finalMix.size).coerceAtLeast(0)
-    val quotas = homeFeedQuotas(remaining, subCount, totalInteractions, hasNeighbours = lanes.bestNeighbours.isNotEmpty())
+    val quotas = homeFeedQuotas(
+            remaining,
+            subCount,
+            totalInteractions,
+            hasNeighbours = lanes.bestNeighbours.isNotEmpty(),
+            subscribedOnly = subscribedOnly,
+        )
     val sourceMix =
         blendFeedSources(
             lanes =

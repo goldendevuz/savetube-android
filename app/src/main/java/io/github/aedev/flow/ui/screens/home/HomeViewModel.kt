@@ -342,7 +342,7 @@ class HomeViewModel
             }
 
             viewModelScope.launch {
-                playerPreferences.homeSubscriptionsEnabled
+                playerPreferences.homeFeedScope
                     .distinctUntilChanged()
                     .drop(1)
                     .collect { reloadFeed() }
@@ -541,11 +541,12 @@ class HomeViewModel
             shortsRepository.evictChannel(channelId)
         }
 
-        private suspend fun subscriptionScope(): HomeSubscriptionScope =
-            HomeSubscriptionScope.of(
-                subscriptions = subscriptionRepository.getAllSubscriptionIds(),
-                showOnHome = playerPreferences.homeSubscriptionsEnabled.first(),
-            )
+        private suspend fun subscriptionScope(): HomeSubscriptionScope {
+            val subscriptions = subscriptionRepository.getAllSubscriptionIds()
+            val scope = playerPreferences.homeFeedScope.first()
+            val base = HomeSubscriptionScope.of(subscriptions = subscriptions, showOnHome = scope != "unsubscribed")
+            return if (scope == "subscribed") base.copy(onlyChannels = subscriptions) else base
+        }
 
         private val subscriberStore by lazy { io.github.aedev.flow.data.local.ChannelSubscriberStore(appContext) }
 
@@ -561,12 +562,15 @@ class HomeViewModel
         }
 
         private suspend fun feedExclusions(): FeedExclusions {
+            val scope = subscriptionScope()
             val base =
                 runCatching { FlowNeuroEngine.feedExclusions() }
                     .getOrDefault(FeedExclusions.NONE)
-                    .hidingChannels(subscriptionScope().hidden)
+                    .hidingChannels(scope.hidden)
+            val onlyChannels = scope.onlyChannels
+            val scoped = if (onlyChannels != null) base.hidingWhere { it.channelId !in onlyChannels } else base
             val filters = homeContentFilters()
-            return if (filters.isActive) base.hidingWhere(filters::hides) else base
+            return if (filters.isActive) scoped.hidingWhere(filters::hides) else scoped
         }
 
         /**
@@ -827,6 +831,7 @@ class HomeViewModel
                                 onScreenIds = _uiState.value.videos.mapTo(HashSet()) { it.id },
                                 subCount = userSubs.size,
                                 totalInteractions = brain.totalInteractions,
+                                subscribedOnly = subscriptionScope().onlyChannels != null,
                             )
                         val finalMix = mix.videos
                         subsBacklog = mix.subsBacklog

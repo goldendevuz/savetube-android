@@ -164,6 +164,7 @@ class PlayerPreferences(
         val HOME_MIN_VIEWS = longPreferencesKey("home_min_views")
         val HOME_MIN_SUBSCRIBERS = longPreferencesKey("home_min_subscribers")
         val HOME_DURATION_GROUP = stringPreferencesKey("home_duration_group")
+        val HOME_FEED_SCOPE = stringPreferencesKey("home_feed_scope")
         val HOME_HIDE_MUSIC_VIDEOS = booleanPreferencesKey("home_hide_music_videos")
         val HOME_PIN_FRESH_SUBS = booleanPreferencesKey("home_pin_fresh_subs")
         val HOME_SUBSCRIPTIONS_ENABLED = booleanPreferencesKey("home_subscriptions_enabled")
@@ -1404,9 +1405,28 @@ class PlayerPreferences(
         }
     }
 
-    val homeSubscriptionsEnabled: Flow<Boolean> =
+    /**
+     * Where Home draws from: "off" (everything mixed), "subscribed" (only the channels the viewer follows) or
+     * "unsubscribed" (only channels they do not follow). It replaces the older Subscriptions on Home switch, which
+     * is read when this was never set: that switch off means "unsubscribed".
+     */
+    val homeFeedScope: Flow<String> =
         context.playerPreferencesDataStore.data
-            .map { preferences -> preferences[Keys.HOME_SUBSCRIPTIONS_ENABLED] ?: true }
+            .map { preferences ->
+                preferences[Keys.HOME_FEED_SCOPE]?.takeIf { it in HOME_FEED_SCOPES }
+                    ?: if (preferences[Keys.HOME_SUBSCRIPTIONS_ENABLED] == false) "unsubscribed" else "off"
+            }
+
+    suspend fun setHomeFeedScope(scope: String) {
+        context.playerPreferencesDataStore.edit { preferences ->
+            preferences[Keys.HOME_FEED_SCOPE] = scope
+            // The older switch is settled by the new choice, so the two never disagree.
+            preferences[Keys.HOME_SUBSCRIPTIONS_ENABLED] = scope != "unsubscribed"
+        }
+    }
+
+    /** Whether the channels the viewer follows may appear on Home: everywhere except in the "unsubscribed" scope. */
+    val homeSubscriptionsEnabled: Flow<Boolean> = homeFeedScope.map { it != "unsubscribed" }
 
     suspend fun setHomeSubscriptionsEnabled(enabled: Boolean) {
         context.playerPreferencesDataStore.edit { preferences ->
@@ -5199,3 +5219,6 @@ enum class SharedLinkAction {
 const val LYRICS_ALIGN_LEFT = "left"
 const val LYRICS_ALIGN_CENTER = "center"
 const val LYRICS_ALIGN_RIGHT = "right"
+
+/** The values of the Home feed scope setting. */
+internal val HOME_FEED_SCOPES = setOf("off", "subscribed", "unsubscribed")
