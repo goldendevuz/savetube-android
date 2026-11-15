@@ -166,6 +166,9 @@ class PlayerPreferences(
         val HOME_DURATION_GROUP = stringPreferencesKey("home_duration_group")
         val HOME_FEED_SCOPE = stringPreferencesKey("home_feed_scope")
         val HOME_HIDE_MUSIC_VIDEOS = booleanPreferencesKey("home_hide_music_videos")
+        val HOME_HIDE_MEDIA_CLIPS = booleanPreferencesKey("home_hide_media_clips")
+        val HOME_HIDE_GAMING = booleanPreferencesKey("home_hide_gaming")
+        val HOME_LANGUAGES = stringPreferencesKey("home_languages")
         val HOME_PIN_FRESH_SUBS = booleanPreferencesKey("home_pin_fresh_subs")
         val HOME_SUBSCRIPTIONS_ENABLED = booleanPreferencesKey("home_subscriptions_enabled")
         val HOME_SNAPSHOT_RECORDING = booleanPreferencesKey("home_snapshot_recording")
@@ -1402,6 +1405,38 @@ class PlayerPreferences(
     suspend fun setHomeHideMusicVideos(enabled: Boolean) {
         context.playerPreferencesDataStore.edit { preferences ->
             preferences[Keys.HOME_HIDE_MUSIC_VIDEOS] = enabled
+        }
+    }
+
+    /** Home keeps entertainment (movie and TV clips, shows, anime) off the page; on unless the viewer turns it off. */
+    val homeHideMediaClips: Flow<Boolean> =
+        context.playerPreferencesDataStore.data
+            .map { preferences -> preferences[Keys.HOME_HIDE_MEDIA_CLIPS] ?: true }
+
+    suspend fun setHomeHideMediaClips(enabled: Boolean) {
+        context.playerPreferencesDataStore.edit { preferences ->
+            preferences[Keys.HOME_HIDE_MEDIA_CLIPS] = enabled
+        }
+    }
+
+    val homeHideGaming: Flow<Boolean> =
+        context.playerPreferencesDataStore.data
+            .map { preferences -> preferences[Keys.HOME_HIDE_GAMING] ?: false }
+
+    suspend fun setHomeHideGaming(enabled: Boolean) {
+        context.playerPreferencesDataStore.edit { preferences ->
+            preferences[Keys.HOME_HIDE_GAMING] = enabled
+        }
+    }
+
+    /** The languages Home shows, codes joined by commas ("uz,ru,en"); "any" shows every language. */
+    val homeLanguages: Flow<String> =
+        context.playerPreferencesDataStore.data
+            .map { preferences -> preferences[Keys.HOME_LANGUAGES] ?: "any" }
+
+    suspend fun setHomeLanguages(languages: String) {
+        context.playerPreferencesDataStore.edit { preferences ->
+            preferences[Keys.HOME_LANGUAGES] = languages
         }
     }
 

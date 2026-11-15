@@ -36,7 +36,11 @@ import io.github.aedev.flow.ui.components.shared.FlowChoice
 import io.github.aedev.flow.ui.components.shared.FlowChoiceDialog
 import io.github.aedev.flow.ui.components.shared.FlowSwitchRow
 import io.github.aedev.flow.ui.screens.settings.index.ContentIndex
+import io.github.aedev.flow.ui.screens.home.HOME_LANGUAGE_CODES
+import io.github.aedev.flow.ui.screens.home.homeLanguageName
 import io.github.aedev.flow.ui.screens.home.parseDurationGroups
+import io.github.aedev.flow.ui.screens.home.parseHomeLanguages
+import io.github.aedev.flow.ui.screens.home.serializeHomeLanguages
 import io.github.aedev.flow.ui.screens.home.serializeDurationGroups
 import io.github.aedev.flow.ui.screens.settings.index.DestinationIndex
 
@@ -64,6 +68,7 @@ internal fun ContentSettingsScreen(
     var showSharedLinksDialog by rememberSaveable { mutableStateOf(false) }
     var showMinViewsDialog by rememberSaveable { mutableStateOf(false) }
     var showMinSubscribersDialog by rememberSaveable { mutableStateOf(false) }
+    var showLanguagesDialog by rememberSaveable { mutableStateOf(false) }
     var showDurationGroupDialog by rememberSaveable { mutableStateOf(false) }
     var showFeedScopeDialog by rememberSaveable { mutableStateOf(false) }
 
@@ -97,6 +102,12 @@ internal fun ContentSettingsScreen(
                 durationGroupsLabel(value)
             }
             switch(ContentIndex.homeHideMusic, viewModel.homeHideMusic, viewModel::setHomeHideMusic)
+            switch(ContentIndex.homeHideMediaClips, viewModel.homeHideMediaClips, viewModel::setHomeHideMediaClips)
+            switch(ContentIndex.homeHideGaming, viewModel.homeHideGaming, viewModel::setHomeHideGaming)
+            choice(ContentIndex.homeLanguages, onClick = { showLanguagesDialog = true }) {
+                val value by viewModel.homeLanguages.collectAsStateWithLifecycle()
+                homeLanguagesLabel(value)
+            }
             switch(ContentIndex.homePinFreshSubs, viewModel.homePinFreshSubs, viewModel::setHomePinFreshSubs)
         }
         group(key = "content.music", header = R.string.screen_title_music) {
@@ -211,10 +222,27 @@ internal fun ContentSettingsScreen(
 
     if (showDurationGroupDialog) {
         val value by viewModel.homeDurationGroup.collectAsStateWithLifecycle()
-        DurationGroupsDialog(
+        MultiChoiceDialog(
+            title = stringResource(R.string.content_settings_home_duration_title),
+            body = stringResource(R.string.content_settings_home_duration_dialog_body),
+            noneLabel = durationGroupLabel("any"),
+            options = DURATION_GROUP_KEYS.map { it to durationGroupLabel(it) },
             selected = parseDurationGroups(value),
             onChange = { viewModel.setHomeDurationGroup(serializeDurationGroups(it)) },
             onDismiss = { showDurationGroupDialog = false },
+        )
+    }
+
+    if (showLanguagesDialog) {
+        val value by viewModel.homeLanguages.collectAsStateWithLifecycle()
+        MultiChoiceDialog(
+            title = stringResource(R.string.content_settings_home_languages_title),
+            body = stringResource(R.string.content_settings_home_languages_dialog_body),
+            noneLabel = stringResource(R.string.content_settings_home_languages_all),
+            options = HOME_LANGUAGE_CODES.map { it to homeLanguageName(it) },
+            selected = parseHomeLanguages(value),
+            onChange = { viewModel.setHomeLanguages(serializeHomeLanguages(it)) },
+            onDismiss = { showLanguagesDialog = false },
         )
     }
 
@@ -292,30 +320,39 @@ private fun durationGroupsLabel(value: String): String {
     return labels.joinToString(", ")
 }
 
-/** Pick one or several length ranges; a video is kept when it fits any of them. Nothing picked is any length. */
+/** The row's value: every chosen language, or "All languages". */
 @Composable
-private fun DurationGroupsDialog(
+private fun homeLanguagesLabel(value: String): String {
+    val codes = parseHomeLanguages(value)
+    if (codes.isEmpty()) return stringResource(R.string.content_settings_home_languages_all)
+    val names = codes.map { homeLanguageName(it) }
+    return names.joinToString(", ")
+}
+
+/**
+ * Pick one or several options (a length range, a language); [noneLabel] clears the choice, which means no
+ * limit. Nothing is saved as a list longer than [options].
+ */
+@Composable
+private fun MultiChoiceDialog(
+    title: String,
+    body: String,
+    noneLabel: String,
+    options: List<Pair<String, String>>,
     selected: List<String>,
     onChange: (List<String>) -> Unit,
     onDismiss: () -> Unit,
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.content_settings_home_duration_title)) },
+        title = { Text(title) },
         text = {
             Column(Modifier.verticalScroll(rememberScrollState())) {
-                Text(
-                    stringResource(R.string.content_settings_home_duration_dialog_body),
-                    modifier = Modifier.padding(bottom = 8.dp),
-                )
-                DurationGroupRow(
-                    label = durationGroupLabel("any"),
-                    checked = selected.isEmpty(),
-                    onClick = { onChange(emptyList()) },
-                )
-                DURATION_GROUP_KEYS.forEach { key ->
+                Text(body, modifier = Modifier.padding(bottom = 8.dp))
+                DurationGroupRow(label = noneLabel, checked = selected.isEmpty(), onClick = { onChange(emptyList()) })
+                options.forEach { (key, label) ->
                     DurationGroupRow(
-                        label = durationGroupLabel(key),
+                        label = label,
                         checked = key in selected,
                         onClick = { onChange(if (key in selected) selected - key else selected + key) },
                     )

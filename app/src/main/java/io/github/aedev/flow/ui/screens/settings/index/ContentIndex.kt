@@ -96,6 +96,33 @@ internal object ContentIndex {
             section = R.string.settings_section_home,
             destination = page,
         )
+    val homeHideMediaClips =
+        SettingEntry(
+            key = "content.home.hide_media_clips",
+            title = R.string.content_settings_home_hide_media_title,
+            summary = R.string.content_settings_home_hide_media_subtitle,
+            keywords = R.string.settings_keywords_home_min,
+            section = R.string.settings_section_home,
+            destination = page,
+        )
+    val homeHideGaming =
+        SettingEntry(
+            key = "content.home.hide_gaming",
+            title = R.string.content_settings_home_hide_gaming_title,
+            summary = R.string.content_settings_home_hide_gaming_subtitle,
+            keywords = R.string.settings_keywords_home_min,
+            section = R.string.settings_section_home,
+            destination = page,
+        )
+    val homeLanguages =
+        SettingEntry(
+            key = "content.home.languages",
+            title = R.string.content_settings_home_languages_title,
+            summary = R.string.content_settings_home_languages_subtitle,
+            keywords = R.string.settings_keywords_home_min,
+            section = R.string.settings_section_home,
+            destination = page,
+        )
     val homeSubscriptions =
         SettingEntry(
             key = "content.home.subscriptions",
@@ -312,6 +339,9 @@ internal object ContentIndex {
             homeMinViews,
             homeMinSubscribers,
             homeHideMusic,
+            homeHideMediaClips,
+            homeHideGaming,
+            homeLanguages,
             homeDurationGroup,
             homePinFreshSubs,
             homeSubscriptions,

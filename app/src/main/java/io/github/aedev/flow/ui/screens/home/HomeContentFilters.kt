@@ -55,6 +55,7 @@ private val MUSIC_TITLE_MARKERS =
         "ashula",
         "tarona",
         "konsert",
+        "consert",
         "şarkı",
         "müzik",
         "sözleri",
@@ -85,7 +86,7 @@ private val MUSIC_TITLE_WORDS =
 private val MUSIC_CHANNEL_MARKERS = listOf("vevo", "music", "musiqa", "музык", "müzik")
 
 /** The lower-case form text is matched in: the different apostrophes Uzbek is typed with become `'`. */
-private fun normalizedForMusic(text: String): String =
+internal fun normalizedForMusic(text: String): String =
     text.lowercase().replace('\u02bb', '\'').replace('\u02bc', '\'').replace('\u2019', '\'').replace('\u2018', '\'').replace('`', '\'').replace('\u00b4', '\'')
 
 /**
@@ -152,11 +153,22 @@ internal data class HomeContentFilters(
     val hideMusicVideos: Boolean = false,
     val durationGroup: String = "any",
     val subscribers: Map<String, Long> = emptyMap(),
+    val hideEntertainment: Boolean = false,
+    val hideGaming: Boolean = false,
+    val languages: String = "any",
 ) {
     private val durationGroups: List<String> = parseDurationGroups(durationGroup)
+    private val languageCodes: List<String> = parseHomeLanguages(languages)
 
     val isActive: Boolean
-        get() = minViews > 0L || minSubscribers > 0L || hideMusicVideos || durationGroups.isNotEmpty()
+        get() =
+            minViews > 0L ||
+                minSubscribers > 0L ||
+                hideMusicVideos ||
+                hideEntertainment ||
+                hideGaming ||
+                durationGroups.isNotEmpty() ||
+                languageCodes.isNotEmpty()
 
     fun hides(video: Video): Boolean {
         if (!isActive) return false
@@ -166,6 +178,9 @@ internal data class HomeContentFilters(
             val count = subscribers[video.channelId]
             if (count == null || count < minSubscribers) return true
         }
-        return hideMusicVideos && looksLikeMusicVideo(video)
+        if (hideMusicVideos && looksLikeMusicVideo(video)) return true
+        if (hideEntertainment && looksLikeEntertainment(video.title)) return true
+        if (hideGaming && looksLikeGaming(video.title)) return true
+        return isOutsideLanguages(video.title, languageCodes)
     }
 }

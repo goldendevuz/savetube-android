@@ -90,6 +90,56 @@ class HomeContentFiltersTest {
         assertThat(ids(hide = false)).containsExactly("talk", "nasheed")
     }
 
+    @Test
+    fun `entertainment and game titles are caught`() {
+        assertThat(looksLikeEntertainment("Hulk Vs Surtur Demon (4K Blu-ray) Fight Scenes | Marvel Movie Clips")).isTrue()
+        assertThat(looksLikeEntertainment("Best anime of 2026")).isTrue()
+        assertThat(looksLikeEntertainment("Лучшие моменты из фильма")).isTrue()
+        assertThat(looksLikeEntertainment("Rust ownership explained")).isFalse()
+        assertThat(looksLikeGaming("Minecraft survival gameplay #12")).isTrue()
+        assertThat(looksLikeGaming("Прохождение Call of Duty")).isTrue()
+        assertThat(looksLikeGaming("Yangi o\u02bbyin sharhi")).isTrue()
+        assertThat(looksLikeGaming("Game theory in economics")).isFalse()
+    }
+
+    @Test
+    fun `the language of a title is guessed from its script and telling words`() {
+        assertThat(guessLanguage("Your Life as Every Rank in Cyber")).isEqualTo("en")
+        assertThat(guessLanguage("Eng sara taronalar (2026)")).isEqualTo("uz")
+        assertThat(guessLanguage("O'zbek tilida dars")).isEqualTo("uz")
+        assertThat(guessLanguage("Nas\u0131l yap\u0131l\u0131r? \u00c7ok kolay ve h\u0131zl\u0131")).isEqualTo("tr")
+        assertThat(guessLanguage("Лучшие песни 2026")).isEqualTo("ru")
+        assertThat(guessLanguage("Ўзбек тилида дарс")).isEqualTo("uz")
+        assertThat(guessLanguage("Қазақ тілінде сабақ")).isEqualTo("kk")
+        assertThat(guessLanguage("Тоҷикӣ суруд")).isEqualTo("tg")
+        assertThat(guessLanguage("أفضل الأناشيد")).isEqualTo("ar")
+        assertThat(guessLanguage("최고의 노래")).isEqualTo("ko")
+        assertThat(guessLanguage("2026")).isNull()
+        assertThat(guessLanguage("Hulk Surtur Demon")).isNull()
+    }
+
+    @Test
+    fun `only the chosen languages stay and an unknown one is never hidden`() {
+        val languages = parseHomeLanguages("uz,en")
+        assertThat(isOutsideLanguages("Best of the year", languages)).isFalse()
+        assertThat(isOutsideLanguages("Yangi dars bilan", languages)).isFalse()
+        assertThat(isOutsideLanguages("Лучшие песни 2026", languages)).isTrue()
+        assertThat(isOutsideLanguages("2026", languages)).isFalse()
+        assertThat(isOutsideLanguages("Лучшие песни 2026", emptyList())).isFalse()
+        assertThat(parseHomeLanguages("en, uz,xx,UZ")).containsExactly("uz", "en").inOrder()
+        assertThat(serializeHomeLanguages(listOf("ru", "uz"))).isEqualTo("uz,ru")
+        assertThat(serializeHomeLanguages(emptyList())).isEqualTo("any")
+    }
+
+    @Test
+    fun `the filters apply the new rules only when set`() {
+        val clip = video(title = "Marvel Movie Clips")
+        assertThat(HomeContentFilters(hideEntertainment = true).hides(clip)).isTrue()
+        assertThat(HomeContentFilters().hides(clip)).isFalse()
+        assertThat(HomeContentFilters(hideGaming = true).hides(video(title = "Fortnite highlights"))).isTrue()
+        assertThat(HomeContentFilters(languages = "en").hides(video(title = "Лучшие песни 2026"))).isTrue()
+    }
+
     private fun entry(
         id: String,
         title: String,

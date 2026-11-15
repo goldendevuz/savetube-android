@@ -27,6 +27,8 @@ internal fun filterHomeHistory(
     continueWatchingEnabled: Boolean,
     hideWatchedShorts: Boolean,
     hideMusicVideos: Boolean = false,
+    hideEntertainment: Boolean = false,
+    hideGaming: Boolean = false,
 ): HomeHistoryFilterResult {
     val watchedIds by lazy(LazyThreadSafetyMode.NONE) {
         history
@@ -43,6 +45,8 @@ internal fun filterHomeHistory(
                 .filter { !it.isShort && it.progressPercentage >= 3f }
                 // Songs stay out of the shelf when the viewer hides music: the same rule as the feed.
                 .filter { !(hideMusicVideos && (it.isMusic || looksLikeMusic(it.title, it.channelName))) }
+                .filter { !(hideEntertainment && looksLikeEntertainment(it.title)) }
+                .filter { !(hideGaming && looksLikeGaming(it.title)) }
                 .filter { entry ->
                     if (hideWatchedVideos) {
                         entry.videoId !in watchedVideoIds

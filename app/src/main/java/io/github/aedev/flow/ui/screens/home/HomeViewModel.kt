@@ -273,7 +273,9 @@ class HomeViewModel
                         HomeHistoryInputs(history, hideWatched, threshold, continueWatchingEnabled, hideWatchedShorts)
                     },
                     playerPreferences.homeHideMusicVideos,
-                ) { inputs, hideMusic ->
+                    playerPreferences.homeHideMediaClips,
+                    playerPreferences.homeHideGaming,
+                ) { inputs, hideMusic, hideEntertainment, hideGaming ->
                     filterHomeHistory(
                         history = inputs.history,
                         hideWatchedVideos = inputs.hideWatched,
@@ -281,6 +283,8 @@ class HomeViewModel
                         continueWatchingEnabled = inputs.continueWatchingEnabled,
                         hideWatchedShorts = inputs.hideWatchedShorts,
                         hideMusicVideos = hideMusic,
+                        hideEntertainment = hideEntertainment,
+                        hideGaming = hideGaming,
                     )
                 }.collect { result ->
                     watchedVideoIds.value = result.watchedVideoIds
@@ -567,8 +571,23 @@ class HomeViewModel
                     playerPreferences.homeFeedScope,
                     playerPreferences.hideWatchedVideosFromHome,
                 ) { music, scope, watched -> Triple(music, scope, watched) },
-            ) { (views, subscribers, duration), (music, scope, watched) ->
-                HomeFilterChoices(views, subscribers, duration, music, scope, watched)
+                combine(
+                    playerPreferences.homeHideMediaClips,
+                    playerPreferences.homeHideGaming,
+                    playerPreferences.homeLanguages,
+                ) { entertainment, gaming, languages -> Triple(entertainment, gaming, languages) },
+            ) { (views, subscribers, duration), (music, scope, watched), (entertainment, gaming, languages) ->
+                HomeFilterChoices(
+                    minViews = views,
+                    minSubscribers = subscribers,
+                    durationGroup = duration,
+                    hideMusicVideos = music,
+                    feedScope = scope,
+                    hideWatched = watched,
+                    hideEntertainment = entertainment,
+                    hideGaming = gaming,
+                    languages = languages,
+                )
             }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(UI_STATE_SUBSCRIPTION_TIMEOUT_MS), HomeFilterChoices())
 
         private val subscriberStore by lazy { io.github.aedev.flow.data.local.ChannelSubscriberStore(appContext) }
@@ -582,6 +601,9 @@ class HomeViewModel
                 // One or several length groups, joined by commas; the old "g1" is read as any length.
                 durationGroup = playerPreferences.homeDurationGroup.first(),
                 subscribers = if (minSubscribers > 0L) subscriberStore.fresh() else emptyMap(),
+                hideEntertainment = playerPreferences.homeHideMediaClips.first(),
+                hideGaming = playerPreferences.homeHideGaming.first(),
+                languages = playerPreferences.homeLanguages.first(),
             )
         }
 

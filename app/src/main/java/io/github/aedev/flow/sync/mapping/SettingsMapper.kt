@@ -91,6 +91,9 @@ object SettingsMapper {
             Entry("home_duration_group", "home_duration_group", Ty.STRING),
             Entry("home_feed_scope", "home_feed_scope", Ty.STRING),
             Entry("home_hide_music_videos", "home_hide_music_videos", Ty.BOOL),
+            Entry("home_hide_media_clips", "home_hide_media_clips", Ty.BOOL),
+            Entry("home_hide_gaming", "home_hide_gaming", Ty.BOOL),
+            Entry("home_languages", "home_languages", Ty.STRING),
             Entry("home_pin_fresh_subs", "home_pin_fresh_subs", Ty.BOOL),
         )
 

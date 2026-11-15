@@ -24,6 +24,9 @@ data class HomeFilterChoices(
     val hideMusicVideos: Boolean = false,
     val feedScope: String = "off",
     val hideWatched: Boolean = false,
+    val hideEntertainment: Boolean = false,
+    val hideGaming: Boolean = false,
+    val languages: String = "any",
 ) {
     /** Whether any of them is on. The old "g1" length choice is read as any length (it left Home empty). */
     val hasActiveFilter: Boolean
@@ -32,6 +35,9 @@ data class HomeFilterChoices(
                 minSubscribers > 0L ||
                 parseDurationGroups(durationGroup).isNotEmpty() ||
                 hideMusicVideos ||
+                hideEntertainment ||
+                hideGaming ||
+                parseHomeLanguages(languages).isNotEmpty() ||
                 feedScope == "subscribed" ||
                 feedScope == "unsubscribed" ||
                 hideWatched
@@ -55,6 +61,10 @@ internal fun HomeEmptyState(
             val lengthLabels = parseDurationGroups(choices.durationGroup).mapNotNull { durationGroupName(it) }
             if (lengthLabels.isNotEmpty()) add(stringResource(R.string.home_filter_length, lengthLabels.joinToString(", ")))
             if (choices.hideMusicVideos) add(stringResource(R.string.home_filter_music))
+            if (choices.hideEntertainment) add(stringResource(R.string.home_filter_media))
+            if (choices.hideGaming) add(stringResource(R.string.home_filter_gaming))
+            val languageNames = parseHomeLanguages(choices.languages).map { homeLanguageName(it) }
+            if (languageNames.isNotEmpty()) add(stringResource(R.string.home_filter_languages, languageNames.joinToString(", ")))
             if (choices.feedScope == "subscribed") add(stringResource(R.string.home_filter_scope_subscribed))
             if (choices.feedScope == "unsubscribed") add(stringResource(R.string.home_filter_scope_unsubscribed))
             if (choices.hideWatched) add(stringResource(R.string.home_filter_seen))
@@ -106,3 +116,21 @@ private fun durationGroupName(group: String): String? =
         "g8" -> stringResource(R.string.content_settings_home_duration_g8)
         else -> null
     }
+
+/** The name of a language in its own language, for the settings and the empty-state list. */
+@Composable
+internal fun homeLanguageName(code: String): String =
+    stringResource(
+        when (code) {
+            "uz" -> R.string.language_name_uz
+            "ru" -> R.string.language_name_ru
+            "en" -> R.string.language_name_en
+            "tr" -> R.string.language_name_tr
+            "ar" -> R.string.language_name_ar
+            "fa" -> R.string.language_name_fa
+            "kk" -> R.string.language_name_kk
+            "tg" -> R.string.language_name_tg
+            "ky" -> R.string.language_name_ky
+            else -> R.string.language_name_ko
+        },
+    )
