@@ -12,8 +12,10 @@ import io.github.aedev.flow.data.local.dao.SubscriptionGroupDao
 import io.github.aedev.flow.data.local.dao.VideoDao
 import io.github.aedev.flow.data.local.dao.WatchHistoryDao
 import io.github.aedev.flow.data.local.entity.NoteEntity
+import io.github.aedev.flow.data.local.filterNames
 import io.github.aedev.flow.data.local.readHistory
 import io.github.aedev.flow.data.localmedia.LocalMediaIds
+import io.github.aedev.flow.data.wellbeing.DailyLimitStore
 import io.github.aedev.flow.sync.canonical.CanonicalLike
 import io.github.aedev.flow.sync.canonical.CanonicalNote
 import io.github.aedev.flow.sync.canonical.CanonicalPlaylist
@@ -51,6 +53,7 @@ class SyncDataAccess
         private val noteDao: io.github.aedev.flow.data.local.dao.NoteDao,
         private val subscriptions: SubscriptionRepository,
         private val equalizer: EqualizerRepository,
+        private val dailyLimitStore: DailyLimitStore,
     ) {
         private val likedVideos: LikedVideosRepository by lazy { LikedVideosRepository.getInstance(context) }
         private val playerPrefs: PlayerPreferences by lazy { PlayerPreferences(context) }
@@ -91,14 +94,26 @@ class SyncDataAccess
 
         suspend fun readSettings(hlc: String): List<CanonicalSetting> {
             val settings = playerPrefs.getExportData()
-            val withEqualizer = settings.copy(strings = settings.strings + (EqStateJson.KEY to equalizer.exportJson()))
+            // The daily limit lives in its own store, so it is added here.
+            val (limitBooleans, limitInts) = dailyLimitStore.exportSettings()
+            val withEqualizer =
+                settings.copy(
+                    strings = settings.strings + (EqStateJson.KEY to equalizer.exportJson()),
+                    booleans = settings.booleans + limitBooleans,
+                    ints = settings.ints + limitInts,
+                )
             return SettingsMapper.exportToCanonical(withEqualizer, hlc)
         }
 
         suspend fun writeSettings(merged: List<CanonicalSetting>) {
             val settings = SettingsMapper.applyToBackup(merged)
             settings.strings[EqStateJson.KEY]?.let { equalizer.importJson(it) }
-            playerPrefs.restoreData(settings.copy(strings = settings.strings - EqStateJson.KEY))
+            dailyLimitStore.restoreSettings(settings.booleans, settings.ints)
+            playerPrefs.restoreData(
+                settings
+                    .copy(strings = settings.strings - EqStateJson.KEY)
+                    .filterNames { it !in DailyLimitStore.SETTING_NAMES },
+            )
         }
 
         // --- subscribed channels ---
