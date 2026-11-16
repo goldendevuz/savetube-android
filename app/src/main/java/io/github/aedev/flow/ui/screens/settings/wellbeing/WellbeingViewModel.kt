@@ -8,12 +8,13 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import io.github.aedev.flow.data.local.LocalDataManager
 import io.github.aedev.flow.data.local.ViewHistory
 import io.github.aedev.flow.data.recommendation.music.MusicBrainEngine
-import io.github.aedev.flow.data.recommendation.music.MusicStatsStorage
-import io.github.aedev.flow.data.stats.RecapAggregates
 import io.github.aedev.flow.data.stats.VideoStatsRecorder
 import io.github.aedev.flow.data.wellbeing.DailyLimitPolicy
 import io.github.aedev.flow.data.wellbeing.DailyLimitSettings
 import io.github.aedev.flow.data.wellbeing.DailyLimitStore
+import io.github.aedev.flow.data.wellbeing.TimeZones
+import io.github.aedev.flow.data.wellbeing.WatchStatsStore
+import io.github.aedev.flow.data.wellbeing.WatchTimeMeasurer
 import io.github.aedev.flow.notification.ReminderManager
 import io.github.aedev.flow.ui.screens.settings.SettingsViewModel
 import kotlinx.coroutines.Dispatchers
@@ -24,10 +25,12 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import java.time.LocalDate
 import java.time.LocalTime
+import java.time.YearMonth
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import javax.inject.Inject
@@ -48,17 +51,40 @@ class WellbeingViewModel
         private val videoStats: VideoStatsRecorder,
         private val musicBrain: MusicBrainEngine,
         private val dailyLimitStore: DailyLimitStore,
+        private val measurer: WatchTimeMeasurer,
+        private val watchStatsStore: WatchStatsStore,
     ) : SettingsViewModel() {
-        /** Measured once per visit, and again at midnight while the page stays open so the week ends on the new today. */
-        val summary =
+        /** This device's own week, measured once per visit and again at midnight so the week ends on the new today. */
+        private val ownWeek =
             flow {
                 while (true) {
                     val now = ZonedDateTime.now()
-                    emit(measureWeek(now.toLocalDate(), now.zone))
+                    emit(measurer.week(now.toLocalDate(), now.zone))
                     delay(millisUntilNextDay(now))
                 }
             }.flowOn(Dispatchers.Default)
+
+        /** This device's own month of video, measured once per visit. */
+        private val ownMonth =
+            flow { emit(measurer.month()?.let { summarizeTopChannels(it.video) }) }
+                .flowOn(Dispatchers.Default)
+
+        /** The week of all devices together: this device's own plus what the others published. */
+        val summary =
+            combine(ownWeek, watchStatsStore.others) { own, others -> combineDays(own, others.values) }
                 .asState(null)
+
+        /** Each device's part of the week. */
+        val deviceTotals =
+            combine(ownWeek, watchStatsStore.others) { own, others ->
+                deviceTotals(own, dailyLimitStore.deviceName(), others.values)
+            }.asState(emptyList())
+
+        /** This month's most watched channels over all devices. */
+        val topChannels =
+            combine(ownMonth, watchStatsStore.others) { own, others ->
+                combineTopChannels(own, YearMonth.now().toString(), others.values)
+            }.asState(null)
 
         val bedtimeEnabled = localData.bedtimeReminder.asState(false)
         val breakEnabled = localData.breakReminder.asState(false)
@@ -91,6 +117,19 @@ class WellbeingViewModel
 
         val dailyLimit = dailyLimitStore.settings.asState(DailyLimitSettings())
 
+        /** The zone the daily limit and the bedtime reminder keep their days and clock in. */
+        val timeZone = dailyLimitStore.timeZone.map { it.id }.asState(TimeZones.DEFAULT)
+
+        fun setTimeZone(name: String) =
+            write {
+                dailyLimitStore.setTimeZone(name)
+                if (bedtimeEnabled.value) scheduleBedtime(true, bedtimeStart.value)
+            }
+
+        /** Today's count of all devices together, and each device's share of it. */
+        val dailyTally = dailyLimitStore.tally.asState(null)
+        val dailyDevices = dailyLimitStore.devices.asState(emptyList())
+
         private val _pendingLimit = MutableStateFlow<PendingLimitChange?>(null)
 
         /** A change that loosens a limit already used up today, waiting out its pause before it can be applied. */
@@ -100,7 +139,7 @@ class WellbeingViewModel
             write {
                 val current = dailyLimitStore.settings.first()
                 val tally = dailyLimitStore.tally.first()
-                if (DailyLimitPolicy.changeNeedsWait(current, next, tally, LocalDate.now().toEpochDay())) {
+                if (DailyLimitPolicy.changeNeedsWait(current, next, tally, LocalDate.now(dailyLimitStore.zone()).toEpochDay())) {
                     _pendingLimit.value = PendingLimitChange(next, SystemClock.elapsedRealtime() + DailyLimitPolicy.WAIT_MS)
                 } else {
                     dailyLimitStore.setSettings(next)
@@ -118,28 +157,6 @@ class WellbeingViewModel
             _pendingLimit.value = null
         }
 
-        /**
-         * The recap ledgers' real watching time is used once they cover the whole week; until then the
-         * history estimate (last position on the last-watched day) stands in.
-         */
-        private suspend fun measureWeek(
-            today: LocalDate,
-            zone: ZoneId,
-        ): WatchTimeSummary {
-            val video = runCatching { videoStats.snapshot() }.getOrNull()
-            val ledger =
-                video?.let {
-                    val music = runCatching { musicBrain.listeningStats() }.getOrDefault(MusicStatsStorage.SerializableStats())
-                    val days = RecapAggregates.dailyTime(it, music, today.minusDays((WEEK_DAYS - 1).toLong()), today)
-                    summarizeLedgerTime(days, RecapAggregates.videoLedgerStart(it), today)
-                }
-            return ledger ?: summarizeWatchTime(
-                viewHistory.getAllHistory().first().map { WatchRecord(it.timestamp, it.position) },
-                today,
-                zone,
-            )
-        }
-
         private fun timeOf(
             hour: Flow<Int>,
             minute: Flow<Int>,
@@ -147,12 +164,12 @@ class WellbeingViewModel
         ) = combine(hour, minute) { h, m -> LocalTime.of(h.coerceIn(0, 23), m.coerceIn(0, 59)) }
             .asState(initial)
 
-        private fun scheduleBedtime(
+        private suspend fun scheduleBedtime(
             enabled: Boolean,
             start: LocalTime,
         ) = runCatching {
             if (enabled) {
-                ReminderManager.scheduleBedtimeReminder(context, start.hour, start.minute)
+                ReminderManager.scheduleBedtimeReminder(context, start.hour, start.minute, dailyLimitStore.zone())
             } else {
                 ReminderManager.cancelBedtimeReminder(context)
             }

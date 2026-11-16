@@ -5277,4 +5277,13 @@
         <item>Челлендж</item>
         <item>Семейный влог</item>
     </string-array>
+    <string name="top_channels_month_title">Самые просматриваемые каналы в этом месяце</string>
+    <string name="shorts_share_label">Shorts занимают %1$s вашего времени на видео</string>
+    <string name="daily_limit_today_total">Сегодня на всех ваших устройствах: %1$s из %2$s</string>
+    <string name="daily_limit_left">Осталось %1$s</string>
+    <string name="daily_limit_device_own">%1$s (это устройство)</string>
+    <string name="daily_limit_device_unnamed">Другое устройство</string>
+    <string name="watch_time_devices_title">На этой неделе по устройствам</string>
+    <string name="time_zone_title">Часовой пояс</string>
+    <string name="time_zone_description">Когда начинается день для дневного лимита и по каким часам работает напоминание о сне</string>
 </resources>

@@ -14,7 +14,12 @@ internal object WellbeingAlarms {
         settings: LocalDataManager,
     ) {
         if (settings.bedtimeReminder.first()) {
-            ReminderManager.scheduleBedtimeReminder(context, settings.bedtimeStartHour.first(), settings.bedtimeStartMinute.first())
+            ReminderManager.scheduleBedtimeReminder(
+                context,
+                settings.bedtimeStartHour.first(),
+                settings.bedtimeStartMinute.first(),
+                io.github.aedev.flow.data.wellbeing.DailyLimitStore(context).zone(),
+            )
         } else {
             ReminderManager.cancelBedtimeReminder(context)
         }

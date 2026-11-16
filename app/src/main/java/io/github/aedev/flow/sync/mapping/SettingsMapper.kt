@@ -95,6 +95,15 @@ object SettingsMapper {
             Entry("home_hide_gaming", "home_hide_gaming", Ty.BOOL),
             Entry("home_languages", "home_languages", Ty.STRING),
             Entry("home_pin_fresh_subs", "home_pin_fresh_subs", Ty.BOOL),
+            // The daily limit; today's running count stays on each device.
+            Entry("daily_limit", "daily_limit", Ty.BOOL),
+            Entry("daily_limit_minutes", "daily_limit_minutes", Ty.INT),
+            Entry("daily_limit_music", "daily_limit_music", Ty.BOOL),
+            Entry("time_zone", "time_zone", Ty.STRING),
+            // Each device's count of today, merged on arrival so the limit covers every device.
+            Entry("daily_time", "daily_time", Ty.STRING),
+            // Each device's published watch statistics, merged on arrival.
+            Entry("watch_stats", "watch_stats", Ty.STRING),
         )
 
     private val byCanonical = WHITELIST.associateBy { it.canonical }

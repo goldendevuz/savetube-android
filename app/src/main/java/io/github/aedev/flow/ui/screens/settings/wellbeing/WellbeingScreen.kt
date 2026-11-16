@@ -16,6 +16,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.material.icons.outlined.Public
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -27,6 +28,7 @@ import androidx.core.content.ContextCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.aedev.flow.R
+import io.github.aedev.flow.data.wellbeing.TimeZones
 import io.github.aedev.flow.ui.components.settings.SettingsPage
 import io.github.aedev.flow.ui.components.settings.choice
 import io.github.aedev.flow.ui.components.settings.notice
@@ -43,7 +45,7 @@ import java.time.format.FormatStyle
 
 private enum class Reminder { BEDTIME, BREAK, DAILY_LIMIT }
 
-private enum class WellbeingDialog { BEDTIME_START, BEDTIME_END, BREAK_FREQUENCY, DAILY_LIMIT_MINUTES }
+private enum class WellbeingDialog { BEDTIME_START, BEDTIME_END, BREAK_FREQUENCY, DAILY_LIMIT_MINUTES, TIME_ZONE }
 
 private val BreakFrequencies = listOf(5, 10, 15, 20, 30, 45, 60, 90, 120)
 private const val MINUTES_PER_DAY = 24 * 60
@@ -57,12 +59,17 @@ internal fun WellbeingScreen(
 ) {
     val context = LocalContext.current
     val summary by viewModel.summary.collectAsStateWithLifecycle()
+    val topChannels by viewModel.topChannels.collectAsStateWithLifecycle()
+    val deviceTotals by viewModel.deviceTotals.collectAsStateWithLifecycle()
     val bedtimeEnabled by viewModel.bedtimeEnabled.collectAsStateWithLifecycle()
     val breakEnabled by viewModel.breakEnabled.collectAsStateWithLifecycle()
     val bedtimeStart by viewModel.bedtimeStart.collectAsStateWithLifecycle()
     val bedtimeEnd by viewModel.bedtimeEnd.collectAsStateWithLifecycle()
     val breakMinutes by viewModel.breakMinutes.collectAsStateWithLifecycle()
     val dailyLimit by viewModel.dailyLimit.collectAsStateWithLifecycle()
+    val dailyTally by viewModel.dailyTally.collectAsStateWithLifecycle()
+    val timeZone by viewModel.timeZone.collectAsStateWithLifecycle()
+    val dailyDevices by viewModel.dailyDevices.collectAsStateWithLifecycle()
     val pendingLimit by viewModel.pendingLimit.collectAsStateWithLifecycle()
     var dialog by rememberSaveable { mutableStateOf<WellbeingDialog?>(null) }
     var pending by rememberSaveable { mutableStateOf<Reminder?>(null) }
@@ -142,6 +149,10 @@ internal fun WellbeingScreen(
         snackbarHostState = snackbarHostState,
     ) {
         item("wellbeing.watch_time") { WatchTimeCard(summary) }
+        if (deviceTotals.size > 1) {
+            item("wellbeing.device_times") { DeviceTimesCard(deviceTotals) }
+        }
+        item("wellbeing.top_channels") { TopChannelsCard(topChannels) }
         notice("wellbeing.disclaimer", text = { stringResource(R.string.stats_disclaimer) })
         header("wellbeing.tools", R.string.tools_to_manage_time)
         group(key = "wellbeing.bedtime", footer = R.string.bedtime_notification_note) {
@@ -169,12 +180,18 @@ internal fun WellbeingScreen(
                 }
             }
         }
+        group(key = "wellbeing.time_zone") {
+            choice(WellbeingIndex.timeZone, onClick = { dialog = WellbeingDialog.TIME_ZONE }, icon = Icons.Outlined.Public) { timeZone }
+        }
         dailyLimitGroup(
             settings = dailyLimit,
             onEnabledChange = { toggle(Reminder.DAILY_LIMIT, it) },
             onPickMinutes = { dialog = WellbeingDialog.DAILY_LIMIT_MINUTES },
             onChange = viewModel::changeDailyLimit,
         )
+        if (dailyLimit.enabled) {
+            item("wellbeing.daily_today") { DailyLimitToday(dailyLimit, dailyTally, dailyDevices) }
+        }
     }
 
     pendingLimit?.let { pending ->
@@ -209,6 +226,17 @@ internal fun WellbeingScreen(
                 options = BreakFrequencies.map { FlowChoice(it, pluralStringResource(R.plurals.every_minutes_template, it, it)) },
                 selected = breakMinutes,
                 onSelect = viewModel::setBreakMinutes,
+                onDismiss = { dialog = null },
+            )
+        }
+
+        WellbeingDialog.TIME_ZONE -> {
+            FlowChoiceDialog(
+                title = stringResource(R.string.time_zone_title),
+                description = stringResource(R.string.time_zone_description),
+                options = remember { TimeZones.selectable().map { FlowChoice(it, it) } },
+                selected = timeZone,
+                onSelect = viewModel::setTimeZone,
                 onDismiss = { dialog = null },
             )
         }
