@@ -1,6 +1,7 @@
 package io.github.aedev.flow.data.wellbeing
 
 import android.content.Context
+import android.os.Build
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
@@ -48,6 +49,16 @@ class DailyLimitStore
             }
         }
 
+        /** Each device's share of the newest day, the biggest first, with this device marked. */
+        val devices: Flow<List<SharedTally.DeviceShare>> =
+            context.dataStore.data.map { prefs ->
+                val shared = SharedTally.parse(prefs[SHARED])
+                SharedTally.latestDay(shared)?.let { SharedTally.shares(shared, it, prefs[DEVICE_ID].orEmpty()) }.orEmpty()
+            }
+
+        /** What this phone is called in the list of devices. */
+        private fun deviceName(): String = Build.MODEL.orEmpty().ifBlank { Build.DEVICE.orEmpty() }
+
         /** What sync sends: the settings that have been set, and the shared count. Settings never set stay out. */
         suspend fun exportSettings(): SettingsExport {
             val prefs = context.dataStore.data.first()
@@ -81,7 +92,7 @@ class DailyLimitStore
         suspend fun setTally(tally: DailyTally) {
             context.dataStore.edit { prefs ->
                 val deviceId = prefs[DEVICE_ID] ?: UUID.randomUUID().toString().take(8).also { prefs[DEVICE_ID] = it }
-                prefs[SHARED] = SharedTally.encode(SharedTally.withOwn(SharedTally.parse(prefs[SHARED]), deviceId, tally))
+                prefs[SHARED] = SharedTally.encode(SharedTally.withOwn(SharedTally.parse(prefs[SHARED]), deviceId, deviceName(), tally))
             }
         }
 

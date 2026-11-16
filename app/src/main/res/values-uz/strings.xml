@@ -4941,4 +4941,8 @@
     </string-array>
     <string name="top_channels_month_title">Bu oy eng koʻp koʻrilgan kanallar</string>
     <string name="shorts_share_label">Video uchun ketgan vaqtning %1$s qismi Shorts</string>
+    <string name="daily_limit_today_total">Bugun barcha qurilmalarda: %1$s / %2$s</string>
+    <string name="daily_limit_left">%1$s qoldi</string>
+    <string name="daily_limit_device_own">%1$s (shu qurilma)</string>
+    <string name="daily_limit_device_unnamed">Boshqa qurilma</string>
 </resources>

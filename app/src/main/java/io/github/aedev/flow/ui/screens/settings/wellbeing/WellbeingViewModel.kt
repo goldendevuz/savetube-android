@@ -99,6 +99,10 @@ class WellbeingViewModel
 
         val dailyLimit = dailyLimitStore.settings.asState(DailyLimitSettings())
 
+        /** Today's count of all devices together, and each device's share of it. */
+        val dailyTally = dailyLimitStore.tally.asState(null)
+        val dailyDevices = dailyLimitStore.devices.asState(emptyList())
+
         private val _pendingLimit = MutableStateFlow<PendingLimitChange?>(null)
 
         /** A change that loosens a limit already used up today, waiting out its pause before it can be applied. */
