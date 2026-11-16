@@ -99,6 +99,8 @@ object SettingsMapper {
             Entry("daily_limit", "daily_limit", Ty.BOOL),
             Entry("daily_limit_minutes", "daily_limit_minutes", Ty.INT),
             Entry("daily_limit_music", "daily_limit_music", Ty.BOOL),
+            // Each device's count of today, merged on arrival so the limit covers every device.
+            Entry("daily_time", "daily_time", Ty.STRING),
         )
 
     private val byCanonical = WHITELIST.associateBy { it.canonical }

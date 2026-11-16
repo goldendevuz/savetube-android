@@ -5,11 +5,13 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
+import androidx.datastore.preferences.core.stringPreferencesKey
 import dagger.hilt.android.qualifiers.ApplicationContext
 import io.github.aedev.flow.data.local.dataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import java.util.UUID
 import javax.inject.Inject
 
 /**
@@ -31,18 +33,11 @@ class DailyLimitStore
                 )
             }
 
-        /** The stored count, or null before anything was counted. */
+        /** The count of the newest day, all devices together, or null before anything was counted. */
         val tally: Flow<DailyTally?> =
             context.dataStore.data.map { prefs ->
-                prefs[TALLY_DAY]?.let { day ->
-                    DailyTally(
-                        day = day,
-                        playedMs = prefs[TALLY_PLAYED_MS] ?: 0L,
-                        extraMs = prefs[TALLY_EXTRA_MS] ?: 0L,
-                        warned = prefs[TALLY_WARNED] ?: false,
-                        reached = prefs[TALLY_REACHED] ?: false,
-                    )
-                }
+                val shared = SharedTally.parse(prefs[SHARED])
+                SharedTally.latestDay(shared)?.let { SharedTally.aggregate(shared, it) }
             }
 
         suspend fun setSettings(settings: DailyLimitSettings) {
@@ -53,37 +48,40 @@ class DailyLimitStore
             }
         }
 
-        /** The settings that have been set, by name, for sync. Settings never set are left out so they stay as they are. */
-        suspend fun exportSettings(): Pair<Map<String, Boolean>, Map<String, Int>> {
+        /** What sync sends: the settings that have been set, and the shared count. Settings never set stay out. */
+        suspend fun exportSettings(): SettingsExport {
             val prefs = context.dataStore.data.first()
-            val booleans = buildMap {
-                prefs[ENABLED]?.let { put(ENABLED.name, it) }
-                prefs[COUNT_MUSIC]?.let { put(COUNT_MUSIC.name, it) }
-            }
+            val booleans =
+                buildMap {
+                    prefs[ENABLED]?.let { put(ENABLED.name, it) }
+                    prefs[COUNT_MUSIC]?.let { put(COUNT_MUSIC.name, it) }
+                }
             val ints = buildMap { prefs[MINUTES]?.let { put(MINUTES.name, it) } }
-            return booleans to ints
+            val strings = buildMap { prefs[SHARED]?.let { put(SHARED.name, it) } }
+            return SettingsExport(booleans, ints, strings)
         }
 
-        /** Writes the settings that arrived by sync; names that did not arrive keep their value. */
-        suspend fun restoreSettings(
-            booleans: Map<String, Boolean>,
-            ints: Map<String, Int>,
-        ) {
-            if (booleans.keys.none { it in SETTING_NAMES } && ints.keys.none { it in SETTING_NAMES }) return
+        /** Writes what arrived by sync. Settings that did not arrive keep their value; the counts are merged in. */
+        suspend fun restoreSettings(incoming: SettingsExport) {
+            val theirs = incoming.strings[SHARED.name]
+            val hasSettings = incoming.booleans.keys.any { it in SETTING_NAMES } || incoming.ints.keys.any { it in SETTING_NAMES }
+            if (!hasSettings && theirs == null) return
             context.dataStore.edit { prefs ->
-                booleans[ENABLED.name]?.let { prefs[ENABLED] = it }
-                booleans[COUNT_MUSIC.name]?.let { prefs[COUNT_MUSIC] = it }
-                ints[MINUTES.name]?.let { prefs[MINUTES] = DailyLimitPolicy.validMinutes(it) }
+                incoming.booleans[ENABLED.name]?.let { prefs[ENABLED] = it }
+                incoming.booleans[COUNT_MUSIC.name]?.let { prefs[COUNT_MUSIC] = it }
+                incoming.ints[MINUTES.name]?.let { prefs[MINUTES] = DailyLimitPolicy.validMinutes(it) }
+                if (theirs != null) {
+                    val merged = SharedTally.merge(SharedTally.parse(prefs[SHARED]), SharedTally.parse(theirs))
+                    prefs[SHARED] = SharedTally.encode(merged)
+                }
             }
         }
 
+        /** Books [tally], the all-devices count of its day, as this device's own share of it. */
         suspend fun setTally(tally: DailyTally) {
             context.dataStore.edit { prefs ->
-                prefs[TALLY_DAY] = tally.day
-                prefs[TALLY_PLAYED_MS] = tally.playedMs
-                prefs[TALLY_EXTRA_MS] = tally.extraMs
-                prefs[TALLY_WARNED] = tally.warned
-                prefs[TALLY_REACHED] = tally.reached
+                val deviceId = prefs[DEVICE_ID] ?: UUID.randomUUID().toString().take(8).also { prefs[DEVICE_ID] = it }
+                prefs[SHARED] = SharedTally.encode(SharedTally.withOwn(SharedTally.parse(prefs[SHARED]), deviceId, tally))
             }
         }
 
@@ -96,12 +94,32 @@ class DailyLimitStore
             private val TALLY_EXTRA_MS = longPreferencesKey("daily_tally_extra_ms")
             private val TALLY_WARNED = booleanPreferencesKey("daily_tally_warned")
             private val TALLY_REACHED = booleanPreferencesKey("daily_tally_reached")
+            private val SHARED = stringPreferencesKey("daily_time")
+            private val DEVICE_ID = stringPreferencesKey("daily_limit_device_id")
+
+            /** The name of the shared count, which is also its name on the wire. */
+            val SHARED_KEY: String = SHARED.name
 
             /** The keys a settings backup carries. */
             val SETTING_NAMES: Set<String> = setOf(ENABLED.name, MINUTES.name, COUNT_MUSIC.name)
 
             /** Today's running count, which a backup leaves behind. */
             val TALLY_NAMES: Set<String> =
-                setOf(TALLY_DAY.name, TALLY_PLAYED_MS.name, TALLY_EXTRA_MS.name, TALLY_WARNED.name, TALLY_REACHED.name)
+                setOf(
+                    TALLY_DAY.name,
+                    TALLY_PLAYED_MS.name,
+                    TALLY_EXTRA_MS.name,
+                    TALLY_WARNED.name,
+                    TALLY_REACHED.name,
+                    SHARED.name,
+                    DEVICE_ID.name,
+                )
         }
     }
+
+/** The daily limit's part of a sync: booleans, whole numbers and text, by name. */
+data class SettingsExport(
+    val booleans: Map<String, Boolean> = emptyMap(),
+    val ints: Map<String, Int> = emptyMap(),
+    val strings: Map<String, String> = emptyMap(),
+)
