@@ -5103,4 +5103,8 @@
     <string name="home_filter_scope_subscribed">Only channels you follow</string>
     <string name="home_filter_scope_unsubscribed">Only channels you do not follow</string>
     <string name="home_filter_seen">Videos you have already seen are hidden</string>
+    <string name="daily_limit_today_total">Today on all your devices: %1$s of %2$s</string>
+    <string name="daily_limit_left">%1$s left</string>
+    <string name="daily_limit_device_own">%1$s (this device)</string>
+    <string name="daily_limit_device_unnamed">Another device</string>
 </resources>

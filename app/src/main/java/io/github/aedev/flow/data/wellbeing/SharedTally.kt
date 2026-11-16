@@ -4,6 +4,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.booleanOrNull
+import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.longOrNull
@@ -16,6 +17,8 @@ data class DeviceCount(
     val extraMs: Long = 0L,
     val reached: Boolean = false,
     val warned: Boolean = false,
+    /** What the device is called in the lists, such as its model; may be empty. */
+    val name: String = "",
 )
 
 /**
@@ -37,6 +40,7 @@ object SharedTally {
             out[id] =
                 DeviceCount(
                     day = day,
+                    name = entry["n"]?.jsonPrimitive()?.contentOrNull ?: "",
                     playedMs = (entry["p"]?.jsonPrimitive()?.longOrNull ?: 0L).coerceAtLeast(0L),
                     extraMs = (entry["x"]?.jsonPrimitive()?.longOrNull ?: 0L).coerceAtLeast(0L),
                     reached = entry["r"]?.jsonPrimitive()?.booleanOrNull ?: false,
@@ -53,6 +57,7 @@ object SharedTally {
                 put(
                     id,
                     buildJsonObject {
+                        put("n", c.name)
                         put("d", c.day)
                         put("p", c.playedMs)
                         put("x", c.extraMs)
@@ -73,6 +78,7 @@ object SharedTally {
             else ->
                 DeviceCount(
                     day = a.day,
+                    name = a.name.ifEmpty { b.name },
                     playedMs = maxOf(a.playedMs, b.playedMs),
                     extraMs = maxOf(a.extraMs, b.extraMs),
                     reached = a.reached || b.reached,
@@ -120,12 +126,14 @@ object SharedTally {
     fun withOwn(
         shared: Map<String, DeviceCount>,
         deviceId: String,
+        deviceName: String,
         tally: DailyTally,
     ): Map<String, DeviceCount> {
         val total = aggregate(shared, tally.day)
         val own = shared[deviceId]?.takeIf { it.day == tally.day } ?: DeviceCount(tally.day)
         val next =
             own.copy(
+                name = deviceName.ifEmpty { own.name },
                 playedMs = own.playedMs + (tally.playedMs - total.playedMs).coerceAtLeast(0L),
                 extraMs = own.extraMs + (tally.extraMs - total.extraMs).coerceAtLeast(0L),
                 reached = own.reached || tally.reached,
@@ -135,4 +143,23 @@ object SharedTally {
     }
 
     private fun kotlinx.serialization.json.JsonElement.jsonPrimitive(): JsonPrimitive? = this as? JsonPrimitive
+
+    /** One device's share of a day, for the list under the total. */
+    data class DeviceShare(
+        val id: String,
+        val name: String,
+        val playedMs: Long,
+        val own: Boolean,
+    )
+
+    /** The devices that counted on [day], the one with the most time first. */
+    fun shares(
+        shared: Map<String, DeviceCount>,
+        day: Long,
+        ownId: String,
+    ): List<DeviceShare> =
+        shared
+            .filterValues { it.day == day }
+            .map { (id, c) -> DeviceShare(id, c.name, c.playedMs, id == ownId) }
+            .sortedWith(compareByDescending<DeviceShare> { it.playedMs }.thenBy { it.id })
 }

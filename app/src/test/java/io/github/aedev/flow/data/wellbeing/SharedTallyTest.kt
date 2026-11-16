@@ -52,7 +52,7 @@ class SharedTallyTest {
     fun aDeviceBooksOnlyItsOwnGrowth() {
         val shared = mapOf("laptop" to DeviceCount(10, 20 * minute))
         // The phone is told the all-devices total is now 25 minutes: 5 of them are its own.
-        val next = SharedTally.withOwn(shared, "phone", DailyTally(day = 10, playedMs = 25 * minute))
+        val next = SharedTally.withOwn(shared, "phone", "Phone", DailyTally(day = 10, playedMs = 25 * minute))
         assertThat(next.getValue("laptop").playedMs).isEqualTo(20 * minute)
         assertThat(next.getValue("phone").playedMs).isEqualTo(5 * minute)
         assertThat(SharedTally.aggregate(next, 10).playedMs).isEqualTo(25 * minute)

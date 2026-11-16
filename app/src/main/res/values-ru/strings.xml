@@ -5277,4 +5277,8 @@
         <item>Челлендж</item>
         <item>Семейный влог</item>
     </string-array>
+    <string name="daily_limit_today_total">Сегодня на всех ваших устройствах: %1$s из %2$s</string>
+    <string name="daily_limit_left">Осталось %1$s</string>
+    <string name="daily_limit_device_own">%1$s (это устройство)</string>
+    <string name="daily_limit_device_unnamed">Другое устройство</string>
 </resources>

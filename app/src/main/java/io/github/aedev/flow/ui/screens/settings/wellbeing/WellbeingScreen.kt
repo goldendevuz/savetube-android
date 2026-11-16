@@ -63,6 +63,8 @@ internal fun WellbeingScreen(
     val bedtimeEnd by viewModel.bedtimeEnd.collectAsStateWithLifecycle()
     val breakMinutes by viewModel.breakMinutes.collectAsStateWithLifecycle()
     val dailyLimit by viewModel.dailyLimit.collectAsStateWithLifecycle()
+    val dailyTally by viewModel.dailyTally.collectAsStateWithLifecycle()
+    val dailyDevices by viewModel.dailyDevices.collectAsStateWithLifecycle()
     val pendingLimit by viewModel.pendingLimit.collectAsStateWithLifecycle()
     var dialog by rememberSaveable { mutableStateOf<WellbeingDialog?>(null) }
     var pending by rememberSaveable { mutableStateOf<Reminder?>(null) }
@@ -175,6 +177,9 @@ internal fun WellbeingScreen(
             onPickMinutes = { dialog = WellbeingDialog.DAILY_LIMIT_MINUTES },
             onChange = viewModel::changeDailyLimit,
         )
+        if (dailyLimit.enabled) {
+            item("wellbeing.daily_today") { DailyLimitToday(dailyLimit, dailyTally, dailyDevices) }
+        }
     }
 
     pendingLimit?.let { pending ->
