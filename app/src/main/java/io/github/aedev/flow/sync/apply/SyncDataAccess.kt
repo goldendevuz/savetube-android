@@ -16,6 +16,7 @@ import io.github.aedev.flow.data.local.filterNames
 import io.github.aedev.flow.data.local.readHistory
 import io.github.aedev.flow.data.localmedia.LocalMediaIds
 import io.github.aedev.flow.data.wellbeing.DailyLimitStore
+import io.github.aedev.flow.data.wellbeing.SettingsExport
 import io.github.aedev.flow.sync.canonical.CanonicalLike
 import io.github.aedev.flow.sync.canonical.CanonicalNote
 import io.github.aedev.flow.sync.canonical.CanonicalPlaylist
@@ -95,12 +96,12 @@ class SyncDataAccess
         suspend fun readSettings(hlc: String): List<CanonicalSetting> {
             val settings = playerPrefs.getExportData()
             // The daily limit lives in its own store, so it is added here.
-            val (limitBooleans, limitInts) = dailyLimitStore.exportSettings()
+            val limit = dailyLimitStore.exportSettings()
             val withEqualizer =
                 settings.copy(
-                    strings = settings.strings + (EqStateJson.KEY to equalizer.exportJson()),
-                    booleans = settings.booleans + limitBooleans,
-                    ints = settings.ints + limitInts,
+                    strings = settings.strings + (EqStateJson.KEY to equalizer.exportJson()) + limit.strings,
+                    booleans = settings.booleans + limit.booleans,
+                    ints = settings.ints + limit.ints,
                 )
             return SettingsMapper.exportToCanonical(withEqualizer, hlc)
         }
@@ -108,11 +109,11 @@ class SyncDataAccess
         suspend fun writeSettings(merged: List<CanonicalSetting>) {
             val settings = SettingsMapper.applyToBackup(merged)
             settings.strings[EqStateJson.KEY]?.let { equalizer.importJson(it) }
-            dailyLimitStore.restoreSettings(settings.booleans, settings.ints)
+            dailyLimitStore.restoreSettings(SettingsExport(settings.booleans, settings.ints, settings.strings))
             playerPrefs.restoreData(
                 settings
                     .copy(strings = settings.strings - EqStateJson.KEY)
-                    .filterNames { it !in DailyLimitStore.SETTING_NAMES },
+                    .filterNames { it !in DailyLimitStore.SETTING_NAMES && it != DailyLimitStore.SHARED_KEY },
             )
         }
 

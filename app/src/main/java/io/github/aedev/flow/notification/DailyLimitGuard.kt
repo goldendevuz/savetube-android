@@ -63,8 +63,6 @@ class DailyLimitGuard
         /** The Time's up page should open the next time Flow is on screen. */
         val pageRequested: StateFlow<Boolean> = _pageRequested.asStateFlow()
 
-        private var tally: DailyTally? = null
-
         fun install() {
             // The main thread, so the players are paused on their own thread and the tally has one writer.
             scope.launch(Dispatchers.Main.immediate) {
@@ -108,7 +106,7 @@ class DailyLimitGuard
                     }
                     if (DailyLimitPolicy.shouldWarn(limit.minutes, counted)) warn(counted)
                     val untilMidnight = millisUntilNextDay(ZonedDateTime.now())
-                    delay(minOf(DailyLimitPolicy.msUntilNextCheck(limit.minutes, counted), untilMidnight + MIDNIGHT_SLACK_MS))
+                    delay(minOf(DailyLimitPolicy.msUntilNextCheck(limit.minutes, counted), untilMidnight + MIDNIGHT_SLACK_MS, LOOK_AGAIN_MS))
                     since = addPlayed(since)
                 }
             } finally {
@@ -119,7 +117,7 @@ class DailyLimitGuard
         /** Books the time played since [since] on the day it was played, and returns the new start. */
         private suspend fun addPlayed(since: Long): Long {
             val at = now()
-            val counted = tally ?: current()
+            val counted = current()
             save(DailyLimitPolicy.add(counted, at - since))
             return at
         }
@@ -153,14 +151,14 @@ class DailyLimitGuard
         }
 
         private suspend fun current(): DailyTally {
-            val stored = tally ?: store.tally.first()
+            // Read from the store every time: other devices add to the count when sync brings theirs.
+            val stored = store.tally.first()
             val today = DailyLimitPolicy.rollover(stored, LocalDate.now().toEpochDay())
             if (today != stored) save(today)
             return today
         }
 
         private suspend fun save(next: DailyTally) {
-            tally = next
             store.setTally(next)
         }
 
@@ -175,5 +173,8 @@ class DailyLimitGuard
         private companion object {
             /** Wakes just after midnight, so the new day has begun when the count rolls over. */
             const val MIDNIGHT_SLACK_MS = 1_000L
+
+            /** Looks at the all-devices count again at least this often, since another device may have added to it. */
+            const val LOOK_AGAIN_MS = 60_000L
         }
     }
