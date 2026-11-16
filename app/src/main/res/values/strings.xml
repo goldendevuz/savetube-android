@@ -5103,4 +5103,6 @@
     <string name="home_filter_scope_subscribed">Only channels you follow</string>
     <string name="home_filter_scope_unsubscribed">Only channels you do not follow</string>
     <string name="home_filter_seen">Videos you have already seen are hidden</string>
+    <string name="top_channels_month_title">Most watched channels this month</string>
+    <string name="shorts_share_label">Shorts make up %1$s of your video time</string>
 </resources>

@@ -10,6 +10,7 @@ import io.github.aedev.flow.data.local.ViewHistory
 import io.github.aedev.flow.data.recommendation.music.MusicBrainEngine
 import io.github.aedev.flow.data.recommendation.music.MusicStatsStorage
 import io.github.aedev.flow.data.stats.RecapAggregates
+import io.github.aedev.flow.data.stats.RecapPeriod
 import io.github.aedev.flow.data.stats.VideoStatsRecorder
 import io.github.aedev.flow.data.wellbeing.DailyLimitPolicy
 import io.github.aedev.flow.data.wellbeing.DailyLimitSettings
@@ -28,6 +29,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import java.time.LocalDate
 import java.time.LocalTime
+import java.time.YearMonth
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import javax.inject.Inject
@@ -58,6 +60,12 @@ class WellbeingViewModel
                     delay(millisUntilNextDay(now))
                 }
             }.flowOn(Dispatchers.Default)
+                .asState(null)
+
+        /** This month's most watched channels, measured once per visit. */
+        val topChannels =
+            flow { emit(measureTopChannels()) }
+                .flowOn(Dispatchers.Default)
                 .asState(null)
 
         val bedtimeEnabled = localData.bedtimeReminder.asState(false)
@@ -122,6 +130,13 @@ class WellbeingViewModel
          * The recap ledgers' real watching time is used once they cover the whole week; until then the
          * history estimate (last position on the last-watched day) stands in.
          */
+        private suspend fun measureTopChannels(): TopChannelsSummary? {
+            val video = runCatching { videoStats.snapshot() }.getOrNull() ?: return null
+            val music = runCatching { musicBrain.listeningStats() }.getOrDefault(MusicStatsStorage.SerializableStats())
+            val recap = RecapAggregates.summarize(RecapPeriod.Month(YearMonth.now()), video, music)
+            return summarizeTopChannels(recap.video)
+        }
+
         private suspend fun measureWeek(
             today: LocalDate,
             zone: ZoneId,

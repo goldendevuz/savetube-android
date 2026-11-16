@@ -4939,4 +4939,6 @@
         <item>Chellenj</item>
         <item>Oilaviy vlog</item>
     </string-array>
+    <string name="top_channels_month_title">Bu oy eng koʻp koʻrilgan kanallar</string>
+    <string name="shorts_share_label">Video uchun ketgan vaqtning %1$s qismi Shorts</string>
 </resources>

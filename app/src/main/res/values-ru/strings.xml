@@ -5277,4 +5277,6 @@
         <item>Челлендж</item>
         <item>Семейный влог</item>
     </string-array>
+    <string name="top_channels_month_title">Самые просматриваемые каналы в этом месяце</string>
+    <string name="shorts_share_label">Shorts занимают %1$s вашего времени на видео</string>
 </resources>
