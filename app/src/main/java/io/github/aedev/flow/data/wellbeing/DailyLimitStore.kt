@@ -8,12 +8,14 @@ import androidx.datastore.preferences.core.longPreferencesKey
 import dagger.hilt.android.qualifiers.ApplicationContext
 import io.github.aedev.flow.data.local.dataStore
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 /**
  * The daily limit's settings and today's count, in the profile's own settings store next to the break reminder. The
- * settings go into a settings backup like the reminders do; the count does not, and neither is synced.
+ * settings go into a settings backup like the reminders do and travel with sync (see [exportSettings] and
+ * [restoreSettings]); the count does not, it stays on each device.
  */
 class DailyLimitStore
     @Inject
@@ -48,6 +50,30 @@ class DailyLimitStore
                 prefs[ENABLED] = settings.enabled
                 prefs[MINUTES] = DailyLimitPolicy.validMinutes(settings.minutes)
                 prefs[COUNT_MUSIC] = settings.countMusic
+            }
+        }
+
+        /** The settings that have been set, by name, for sync. Settings never set are left out so they stay as they are. */
+        suspend fun exportSettings(): Pair<Map<String, Boolean>, Map<String, Int>> {
+            val prefs = context.dataStore.data.first()
+            val booleans = buildMap {
+                prefs[ENABLED]?.let { put(ENABLED.name, it) }
+                prefs[COUNT_MUSIC]?.let { put(COUNT_MUSIC.name, it) }
+            }
+            val ints = buildMap { prefs[MINUTES]?.let { put(MINUTES.name, it) } }
+            return booleans to ints
+        }
+
+        /** Writes the settings that arrived by sync; names that did not arrive keep their value. */
+        suspend fun restoreSettings(
+            booleans: Map<String, Boolean>,
+            ints: Map<String, Int>,
+        ) {
+            if (booleans.keys.none { it in SETTING_NAMES } && ints.keys.none { it in SETTING_NAMES }) return
+            context.dataStore.edit { prefs ->
+                booleans[ENABLED.name]?.let { prefs[ENABLED] = it }
+                booleans[COUNT_MUSIC.name]?.let { prefs[COUNT_MUSIC] = it }
+                ints[MINUTES.name]?.let { prefs[MINUTES] = DailyLimitPolicy.validMinutes(it) }
             }
         }
 
