@@ -57,6 +57,7 @@ internal fun WellbeingScreen(
 ) {
     val context = LocalContext.current
     val summary by viewModel.summary.collectAsStateWithLifecycle()
+    val topChannels by viewModel.topChannels.collectAsStateWithLifecycle()
     val bedtimeEnabled by viewModel.bedtimeEnabled.collectAsStateWithLifecycle()
     val breakEnabled by viewModel.breakEnabled.collectAsStateWithLifecycle()
     val bedtimeStart by viewModel.bedtimeStart.collectAsStateWithLifecycle()
@@ -142,6 +143,7 @@ internal fun WellbeingScreen(
         snackbarHostState = snackbarHostState,
     ) {
         item("wellbeing.watch_time") { WatchTimeCard(summary) }
+        item("wellbeing.top_channels") { TopChannelsCard(topChannels) }
         notice("wellbeing.disclaimer", text = { stringResource(R.string.stats_disclaimer) })
         header("wellbeing.tools", R.string.tools_to_manage_time)
         group(key = "wellbeing.bedtime", footer = R.string.bedtime_notification_note) {
