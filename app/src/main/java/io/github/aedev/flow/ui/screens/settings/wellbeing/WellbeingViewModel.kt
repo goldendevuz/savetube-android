@@ -12,6 +12,7 @@ import io.github.aedev.flow.data.stats.VideoStatsRecorder
 import io.github.aedev.flow.data.wellbeing.DailyLimitPolicy
 import io.github.aedev.flow.data.wellbeing.DailyLimitSettings
 import io.github.aedev.flow.data.wellbeing.DailyLimitStore
+import io.github.aedev.flow.data.wellbeing.TimeZones
 import io.github.aedev.flow.data.wellbeing.WatchStatsStore
 import io.github.aedev.flow.data.wellbeing.WatchTimeMeasurer
 import io.github.aedev.flow.notification.ReminderManager
@@ -24,6 +25,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import java.time.LocalDate
@@ -115,6 +117,15 @@ class WellbeingViewModel
 
         val dailyLimit = dailyLimitStore.settings.asState(DailyLimitSettings())
 
+        /** The zone the daily limit and the bedtime reminder keep their days and clock in. */
+        val timeZone = dailyLimitStore.timeZone.map { it.id }.asState(TimeZones.DEFAULT)
+
+        fun setTimeZone(name: String) =
+            write {
+                dailyLimitStore.setTimeZone(name)
+                if (bedtimeEnabled.value) scheduleBedtime(true, bedtimeStart.value)
+            }
+
         /** Today's count of all devices together, and each device's share of it. */
         val dailyTally = dailyLimitStore.tally.asState(null)
         val dailyDevices = dailyLimitStore.devices.asState(emptyList())
@@ -128,7 +139,7 @@ class WellbeingViewModel
             write {
                 val current = dailyLimitStore.settings.first()
                 val tally = dailyLimitStore.tally.first()
-                if (DailyLimitPolicy.changeNeedsWait(current, next, tally, LocalDate.now().toEpochDay())) {
+                if (DailyLimitPolicy.changeNeedsWait(current, next, tally, LocalDate.now(dailyLimitStore.zone()).toEpochDay())) {
                     _pendingLimit.value = PendingLimitChange(next, SystemClock.elapsedRealtime() + DailyLimitPolicy.WAIT_MS)
                 } else {
                     dailyLimitStore.setSettings(next)
@@ -153,12 +164,12 @@ class WellbeingViewModel
         ) = combine(hour, minute) { h, m -> LocalTime.of(h.coerceIn(0, 23), m.coerceIn(0, 59)) }
             .asState(initial)
 
-        private fun scheduleBedtime(
+        private suspend fun scheduleBedtime(
             enabled: Boolean,
             start: LocalTime,
         ) = runCatching {
             if (enabled) {
-                ReminderManager.scheduleBedtimeReminder(context, start.hour, start.minute)
+                ReminderManager.scheduleBedtimeReminder(context, start.hour, start.minute, dailyLimitStore.zone())
             } else {
                 ReminderManager.cancelBedtimeReminder(context)
             }

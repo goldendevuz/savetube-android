@@ -12,6 +12,7 @@ import io.github.aedev.flow.data.local.dataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import java.time.ZoneId
 import java.util.UUID
 import javax.inject.Inject
 
@@ -33,6 +34,15 @@ class DailyLimitStore
                     countMusic = prefs[COUNT_MUSIC] ?: false,
                 )
             }
+
+        /** The zone the daily limit and the bedtime reminder keep their days and clock in. */
+        val timeZone: Flow<ZoneId> = context.dataStore.data.map { prefs -> TimeZones.zoneOf(prefs[TIME_ZONE]) }
+
+        suspend fun zone(): ZoneId = timeZone.first()
+
+        suspend fun setTimeZone(name: String) {
+            context.dataStore.edit { prefs -> prefs[TIME_ZONE] = TimeZones.zoneOf(name).id }
+        }
 
         /** The count of the newest day, all devices together, or null before anything was counted. */
         val tally: Flow<DailyTally?> =
@@ -78,7 +88,11 @@ class DailyLimitStore
                     prefs[COUNT_MUSIC]?.let { put(COUNT_MUSIC.name, it) }
                 }
             val ints = buildMap { prefs[MINUTES]?.let { put(MINUTES.name, it) } }
-            val strings = buildMap { prefs[SHARED]?.let { put(SHARED.name, it) } }
+            val strings =
+                buildMap {
+                    prefs[SHARED]?.let { put(SHARED.name, it) }
+                    prefs[TIME_ZONE]?.let { put(TIME_ZONE.name, it) }
+                }
             return SettingsExport(booleans, ints, strings)
         }
 
@@ -86,11 +100,13 @@ class DailyLimitStore
         suspend fun restoreSettings(incoming: SettingsExport) {
             val theirs = incoming.strings[SHARED.name]
             val hasSettings = incoming.booleans.keys.any { it in SETTING_NAMES } || incoming.ints.keys.any { it in SETTING_NAMES }
-            if (!hasSettings && theirs == null) return
+            val zone = incoming.strings[TIME_ZONE.name]
+            if (!hasSettings && theirs == null && zone == null) return
             context.dataStore.edit { prefs ->
                 incoming.booleans[ENABLED.name]?.let { prefs[ENABLED] = it }
                 incoming.booleans[COUNT_MUSIC.name]?.let { prefs[COUNT_MUSIC] = it }
                 incoming.ints[MINUTES.name]?.let { prefs[MINUTES] = DailyLimitPolicy.validMinutes(it) }
+                zone?.let { prefs[TIME_ZONE] = TimeZones.zoneOf(it).id }
                 if (theirs != null) {
                     val merged = SharedTally.merge(SharedTally.parse(prefs[SHARED]), SharedTally.parse(theirs))
                     prefs[SHARED] = SharedTally.encode(merged)
@@ -115,6 +131,7 @@ class DailyLimitStore
             private val TALLY_EXTRA_MS = longPreferencesKey("daily_tally_extra_ms")
             private val TALLY_WARNED = booleanPreferencesKey("daily_tally_warned")
             private val TALLY_REACHED = booleanPreferencesKey("daily_tally_reached")
+            private val TIME_ZONE = stringPreferencesKey("time_zone")
             private val SHARED = stringPreferencesKey("daily_time")
             /** The name this device's id is kept under. */
             const val DEVICE_ID_KEY = "daily_limit_device_id"
@@ -124,7 +141,7 @@ class DailyLimitStore
             val SHARED_KEY: String = SHARED.name
 
             /** The keys a settings backup carries. */
-            val SETTING_NAMES: Set<String> = setOf(ENABLED.name, MINUTES.name, COUNT_MUSIC.name)
+            val SETTING_NAMES: Set<String> = setOf(ENABLED.name, MINUTES.name, COUNT_MUSIC.name, TIME_ZONE.name)
 
             /** Today's running count, which a backup leaves behind. */
             val TALLY_NAMES: Set<String> =

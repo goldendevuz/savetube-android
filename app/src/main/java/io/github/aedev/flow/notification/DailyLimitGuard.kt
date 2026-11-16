@@ -105,7 +105,7 @@ class DailyLimitGuard
                         awaitCancellation()
                     }
                     if (DailyLimitPolicy.shouldWarn(limit.minutes, counted)) warn(counted)
-                    val untilMidnight = millisUntilNextDay(ZonedDateTime.now())
+                    val untilMidnight = millisUntilNextDay(ZonedDateTime.now(store.zone()))
                     delay(minOf(DailyLimitPolicy.msUntilNextCheck(limit.minutes, counted), untilMidnight + MIDNIGHT_SLACK_MS, LOOK_AGAIN_MS))
                     since = addPlayed(since)
                 }
@@ -153,7 +153,7 @@ class DailyLimitGuard
         private suspend fun current(): DailyTally {
             // Read from the store every time: other devices add to the count when sync brings theirs.
             val stored = store.tally.first()
-            val today = DailyLimitPolicy.rollover(stored, LocalDate.now().toEpochDay())
+            val today = DailyLimitPolicy.rollover(stored, LocalDate.now(store.zone()).toEpochDay())
             if (today != stored) save(today)
             return today
         }

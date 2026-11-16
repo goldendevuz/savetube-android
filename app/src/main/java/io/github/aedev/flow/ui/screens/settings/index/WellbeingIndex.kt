@@ -45,5 +45,7 @@ internal object WellbeingIndex {
             revealVia = "wellbeing.daily_limit",
         )
 
-    val all = listOf(bedtime, bedtimeStart, bedtimeEnd, breaks, breakFrequency, dailyLimit, dailyLimitTime, dailyLimitMusic)
+    val timeZone = entry("time_zone", R.string.time_zone_title, R.string.time_zone_description)
+
+    val all = listOf(bedtime, bedtimeStart, bedtimeEnd, breaks, breakFrequency, timeZone, dailyLimit, dailyLimitTime, dailyLimitMusic)
 }

@@ -15,6 +15,7 @@ object ReminderManager {
         context: Context,
         hour: Int,
         minute: Int,
+        zone: java.time.ZoneId = java.time.ZoneId.systemDefault(),
     ) {
         if (!canScheduleExactAlarms(context)) {
             // If we can't schedule exact alarms, we can try to schedule inexact ones or just return.
@@ -37,7 +38,7 @@ object ReminderManager {
 
         // Set calendar to next occurrence of hour:minute
         val calendar =
-            Calendar.getInstance().apply {
+            Calendar.getInstance(java.util.TimeZone.getTimeZone(zone)).apply {
                 set(Calendar.HOUR_OF_DAY, hour)
                 set(Calendar.MINUTE, minute)
                 set(Calendar.SECOND, 0)

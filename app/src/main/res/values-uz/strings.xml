@@ -4946,4 +4946,6 @@
     <string name="daily_limit_device_own">%1$s (shu qurilma)</string>
     <string name="daily_limit_device_unnamed">Boshqa qurilma</string>
     <string name="watch_time_devices_title">Bu hafta qurilmalar boʻyicha</string>
+    <string name="time_zone_title">Vaqt mintaqasi</string>
+    <string name="time_zone_description">Kunlik chegara uchun kun qayerdan boshlanishi va uyqu eslatmasi qaysi soatga qarab ishlashi</string>
 </resources>
