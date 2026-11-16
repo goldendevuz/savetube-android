@@ -5109,4 +5109,5 @@
     <string name="daily_limit_left">%1$s left</string>
     <string name="daily_limit_device_own">%1$s (this device)</string>
     <string name="daily_limit_device_unnamed">Another device</string>
+    <string name="watch_time_devices_title">By device this week</string>
 </resources>

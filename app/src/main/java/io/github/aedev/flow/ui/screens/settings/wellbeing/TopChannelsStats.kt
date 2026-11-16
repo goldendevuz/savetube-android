@@ -13,12 +13,15 @@ data class TopChannelsSummary(
     val channels: List<RankedItem>,
     /** From 0 to 1, or null when nothing was watched. */
     val shortsShare: Float?,
+    /** This device's video time by format this month, so the other devices' can be added to it. */
+    val formatMs: Map<ViewFormat, Long> = emptyMap(),
 )
 
 internal fun summarizeTopChannels(video: VideoRecap): TopChannelsSummary =
     TopChannelsSummary(
-        channels = video.topChannels.sortedByDescending { it.durationMs }.take(TOP_CHANNEL_COUNT),
+        channels = video.topChannels.sortedByDescending { it.durationMs },
         shortsShare = shortsShare(video.formatMs),
+        formatMs = video.formatMs,
     )
 
 /** Shorts time over all video time, or null when no video time was counted. */

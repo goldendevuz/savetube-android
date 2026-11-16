@@ -4945,4 +4945,5 @@
     <string name="daily_limit_left">%1$s qoldi</string>
     <string name="daily_limit_device_own">%1$s (shu qurilma)</string>
     <string name="daily_limit_device_unnamed">Boshqa qurilma</string>
+    <string name="watch_time_devices_title">Bu hafta qurilmalar boʻyicha</string>
 </resources>

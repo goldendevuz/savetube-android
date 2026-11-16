@@ -8,13 +8,12 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import io.github.aedev.flow.data.local.LocalDataManager
 import io.github.aedev.flow.data.local.ViewHistory
 import io.github.aedev.flow.data.recommendation.music.MusicBrainEngine
-import io.github.aedev.flow.data.recommendation.music.MusicStatsStorage
-import io.github.aedev.flow.data.stats.RecapAggregates
-import io.github.aedev.flow.data.stats.RecapPeriod
 import io.github.aedev.flow.data.stats.VideoStatsRecorder
 import io.github.aedev.flow.data.wellbeing.DailyLimitPolicy
 import io.github.aedev.flow.data.wellbeing.DailyLimitSettings
 import io.github.aedev.flow.data.wellbeing.DailyLimitStore
+import io.github.aedev.flow.data.wellbeing.WatchStatsStore
+import io.github.aedev.flow.data.wellbeing.WatchTimeMeasurer
 import io.github.aedev.flow.notification.ReminderManager
 import io.github.aedev.flow.ui.screens.settings.SettingsViewModel
 import kotlinx.coroutines.Dispatchers
@@ -50,23 +49,40 @@ class WellbeingViewModel
         private val videoStats: VideoStatsRecorder,
         private val musicBrain: MusicBrainEngine,
         private val dailyLimitStore: DailyLimitStore,
+        private val measurer: WatchTimeMeasurer,
+        private val watchStatsStore: WatchStatsStore,
     ) : SettingsViewModel() {
-        /** Measured once per visit, and again at midnight while the page stays open so the week ends on the new today. */
-        val summary =
+        /** This device's own week, measured once per visit and again at midnight so the week ends on the new today. */
+        private val ownWeek =
             flow {
                 while (true) {
                     val now = ZonedDateTime.now()
-                    emit(measureWeek(now.toLocalDate(), now.zone))
+                    emit(measurer.week(now.toLocalDate(), now.zone))
                     delay(millisUntilNextDay(now))
                 }
             }.flowOn(Dispatchers.Default)
+
+        /** This device's own month of video, measured once per visit. */
+        private val ownMonth =
+            flow { emit(measurer.month()?.let { summarizeTopChannels(it.video) }) }
+                .flowOn(Dispatchers.Default)
+
+        /** The week of all devices together: this device's own plus what the others published. */
+        val summary =
+            combine(ownWeek, watchStatsStore.others) { own, others -> combineDays(own, others.values) }
                 .asState(null)
 
-        /** This month's most watched channels, measured once per visit. */
+        /** Each device's part of the week. */
+        val deviceTotals =
+            combine(ownWeek, watchStatsStore.others) { own, others ->
+                deviceTotals(own, dailyLimitStore.deviceName(), others.values)
+            }.asState(emptyList())
+
+        /** This month's most watched channels over all devices. */
         val topChannels =
-            flow { emit(measureTopChannels()) }
-                .flowOn(Dispatchers.Default)
-                .asState(null)
+            combine(ownMonth, watchStatsStore.others) { own, others ->
+                combineTopChannels(own, YearMonth.now().toString(), others.values)
+            }.asState(null)
 
         val bedtimeEnabled = localData.bedtimeReminder.asState(false)
         val breakEnabled = localData.breakReminder.asState(false)
@@ -128,35 +144,6 @@ class WellbeingViewModel
 
         fun dismissPendingLimit() {
             _pendingLimit.value = null
-        }
-
-        /**
-         * The recap ledgers' real watching time is used once they cover the whole week; until then the
-         * history estimate (last position on the last-watched day) stands in.
-         */
-        private suspend fun measureTopChannels(): TopChannelsSummary? {
-            val video = runCatching { videoStats.snapshot() }.getOrNull() ?: return null
-            val music = runCatching { musicBrain.listeningStats() }.getOrDefault(MusicStatsStorage.SerializableStats())
-            val recap = RecapAggregates.summarize(RecapPeriod.Month(YearMonth.now()), video, music)
-            return summarizeTopChannels(recap.video)
-        }
-
-        private suspend fun measureWeek(
-            today: LocalDate,
-            zone: ZoneId,
-        ): WatchTimeSummary {
-            val video = runCatching { videoStats.snapshot() }.getOrNull()
-            val ledger =
-                video?.let {
-                    val music = runCatching { musicBrain.listeningStats() }.getOrDefault(MusicStatsStorage.SerializableStats())
-                    val days = RecapAggregates.dailyTime(it, music, today.minusDays((WEEK_DAYS - 1).toLong()), today)
-                    summarizeLedgerTime(days, RecapAggregates.videoLedgerStart(it), today)
-                }
-            return ledger ?: summarizeWatchTime(
-                viewHistory.getAllHistory().first().map { WatchRecord(it.timestamp, it.position) },
-                today,
-                zone,
-            )
         }
 
         private fun timeOf(

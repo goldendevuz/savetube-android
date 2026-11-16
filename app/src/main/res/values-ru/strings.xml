@@ -5283,4 +5283,5 @@
     <string name="daily_limit_left">Осталось %1$s</string>
     <string name="daily_limit_device_own">%1$s (это устройство)</string>
     <string name="daily_limit_device_unnamed">Другое устройство</string>
+    <string name="watch_time_devices_title">На этой неделе по устройствам</string>
 </resources>

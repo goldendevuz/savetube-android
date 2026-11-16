@@ -56,8 +56,18 @@ class DailyLimitStore
                 SharedTally.latestDay(shared)?.let { SharedTally.shares(shared, it, prefs[DEVICE_ID].orEmpty()) }.orEmpty()
             }
 
+        /** This device's id in the shared counts: made once and kept; it is never synced. */
+        suspend fun deviceId(): String {
+            context.dataStore.data.first()[DEVICE_ID]?.let { return it }
+            var id = ""
+            context.dataStore.edit { prefs ->
+                id = prefs[DEVICE_ID] ?: UUID.randomUUID().toString().take(8).also { prefs[DEVICE_ID] = it }
+            }
+            return id
+        }
+
         /** What this phone is called in the list of devices. */
-        private fun deviceName(): String = Build.MODEL.orEmpty().ifBlank { Build.DEVICE.orEmpty() }
+        fun deviceName(): String = Build.MODEL.orEmpty().ifBlank { Build.DEVICE.orEmpty() }
 
         /** What sync sends: the settings that have been set, and the shared count. Settings never set stay out. */
         suspend fun exportSettings(): SettingsExport {
@@ -106,7 +116,9 @@ class DailyLimitStore
             private val TALLY_WARNED = booleanPreferencesKey("daily_tally_warned")
             private val TALLY_REACHED = booleanPreferencesKey("daily_tally_reached")
             private val SHARED = stringPreferencesKey("daily_time")
-            private val DEVICE_ID = stringPreferencesKey("daily_limit_device_id")
+            /** The name this device's id is kept under. */
+            const val DEVICE_ID_KEY = "daily_limit_device_id"
+            private val DEVICE_ID = stringPreferencesKey(DEVICE_ID_KEY)
 
             /** The name of the shared count, which is also its name on the wire. */
             val SHARED_KEY: String = SHARED.name
@@ -124,6 +136,8 @@ class DailyLimitStore
                     TALLY_REACHED.name,
                     SHARED.name,
                     DEVICE_ID.name,
+                    // The published watch statistics (see WatchStatsStore), rebuilt from the ledger.
+                    "watch_stats",
                 )
         }
     }

@@ -17,6 +17,7 @@ import io.github.aedev.flow.data.local.readHistory
 import io.github.aedev.flow.data.localmedia.LocalMediaIds
 import io.github.aedev.flow.data.wellbeing.DailyLimitStore
 import io.github.aedev.flow.data.wellbeing.SettingsExport
+import io.github.aedev.flow.data.wellbeing.WatchStatsStore
 import io.github.aedev.flow.sync.canonical.CanonicalLike
 import io.github.aedev.flow.sync.canonical.CanonicalNote
 import io.github.aedev.flow.sync.canonical.CanonicalPlaylist
@@ -55,6 +56,7 @@ class SyncDataAccess
         private val subscriptions: SubscriptionRepository,
         private val equalizer: EqualizerRepository,
         private val dailyLimitStore: DailyLimitStore,
+        private val watchStatsStore: WatchStatsStore,
     ) {
         private val likedVideos: LikedVideosRepository by lazy { LikedVideosRepository.getInstance(context) }
         private val playerPrefs: PlayerPreferences by lazy { PlayerPreferences(context) }
@@ -97,9 +99,10 @@ class SyncDataAccess
             val settings = playerPrefs.getExportData()
             // The daily limit lives in its own store, so it is added here.
             val limit = dailyLimitStore.exportSettings()
+            val stats = watchStatsStore.exportText()?.let { mapOf(WatchStatsStore.KEY to it) }.orEmpty()
             val withEqualizer =
                 settings.copy(
-                    strings = settings.strings + (EqStateJson.KEY to equalizer.exportJson()) + limit.strings,
+                    strings = settings.strings + (EqStateJson.KEY to equalizer.exportJson()) + limit.strings + stats,
                     booleans = settings.booleans + limit.booleans,
                     ints = settings.ints + limit.ints,
                 )
@@ -110,10 +113,11 @@ class SyncDataAccess
             val settings = SettingsMapper.applyToBackup(merged)
             settings.strings[EqStateJson.KEY]?.let { equalizer.importJson(it) }
             dailyLimitStore.restoreSettings(SettingsExport(settings.booleans, settings.ints, settings.strings))
+            settings.strings[WatchStatsStore.KEY]?.let { watchStatsStore.mergeIn(it) }
             playerPrefs.restoreData(
                 settings
                     .copy(strings = settings.strings - EqStateJson.KEY)
-                    .filterNames { it !in DailyLimitStore.SETTING_NAMES && it != DailyLimitStore.SHARED_KEY },
+                    .filterNames { it !in DailyLimitStore.SETTING_NAMES && it != DailyLimitStore.SHARED_KEY && it != WatchStatsStore.KEY },
             )
         }
 
