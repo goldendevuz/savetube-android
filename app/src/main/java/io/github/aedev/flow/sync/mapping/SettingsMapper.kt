@@ -95,6 +95,10 @@ object SettingsMapper {
             Entry("home_hide_gaming", "home_hide_gaming", Ty.BOOL),
             Entry("home_languages", "home_languages", Ty.STRING),
             Entry("home_pin_fresh_subs", "home_pin_fresh_subs", Ty.BOOL),
+            // The daily limit; today's running count stays on each device.
+            Entry("daily_limit", "daily_limit", Ty.BOOL),
+            Entry("daily_limit_minutes", "daily_limit_minutes", Ty.INT),
+            Entry("daily_limit_music", "daily_limit_music", Ty.BOOL),
         )
 
     private val byCanonical = WHITELIST.associateBy { it.canonical }
