@@ -110,6 +110,14 @@ internal fun ContentSettingsScreen(
             }
             switch(ContentIndex.homePinFreshSubs, viewModel.homePinFreshSubs, viewModel::setHomePinFreshSubs)
         }
+        group(key = "content.focus", header = R.string.content_settings_header_focus) {
+            switch(ContentIndex.hideThumbnails, viewModel.hideThumbnails, viewModel::setHideThumbnails)
+            switch(ContentIndex.blurThumbnails, viewModel.blurThumbnails, viewModel::setBlurThumbnails)
+            switch(ContentIndex.hideTopBar, viewModel.hideTopBar, viewModel::setHideTopBar)
+            switch(ContentIndex.disableEndCards, viewModel.disableEndCards, viewModel::setDisableEndCards)
+            switch(ContentIndex.hideSubscriptionsNav, viewModel.hideSubscriptionsNav, viewModel::setHideSubscriptionsNav)
+            switch(ContentIndex.blackWhite, viewModel.blackWhite, viewModel::setBlackWhite)
+        }
         group(key = "content.music", header = R.string.screen_title_music) {
             nav(
                 DestinationIndex.entry(SettingsDestination.MUSIC_HOME),

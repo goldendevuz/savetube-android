@@ -4948,4 +4948,17 @@
     <string name="watch_time_devices_title">Bu hafta qurilmalar boʻyicha</string>
     <string name="time_zone_title">Vaqt mintaqasi</string>
     <string name="time_zone_description">Kunlik chegara uchun kun qayerdan boshlanishi va uyqu eslatmasi qaysi soatga qarab ishlashi</string>
+    <string name="content_settings_header_focus">Diqqat</string>
+    <string name="focus_hide_thumbnails_title">Miniatyuralarni yashirish</string>
+    <string name="focus_hide_thumbnails_subtitle">Har bir videoning rasmini yashirish</string>
+    <string name="focus_blur_thumbnails_title">Miniatyuralarni xiralashtirish</string>
+    <string name="focus_blur_thumbnails_subtitle">Har bir videoning rasmini xiralashtirish (Android 12 va yangi)</string>
+    <string name="focus_hide_top_bar_title">Yuqori panelni yashirish</string>
+    <string name="focus_hide_top_bar_subtitle">Bosh yorliqdagi yuqori panelni, qidiruv bilan birga, yashirish</string>
+    <string name="focus_disable_end_cards_title">Oxirgi kartochkalarni oʻchirish</string>
+    <string name="focus_disable_end_cards_subtitle">Video oxirida keyingi video kartochkasini yashirish</string>
+    <string name="focus_hide_subscriptions_nav_title">Obunalar yorligʻini yashirish</string>
+    <string name="focus_hide_subscriptions_nav_subtitle">Obunalarni pastki paneldan yashirish</string>
+    <string name="focus_black_white_mode_title">Oq-qora rejim</string>
+    <string name="focus_black_white_mode_subtitle">Butun ilovani oq-qora koʻrsatish</string>
 </resources>

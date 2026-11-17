@@ -136,6 +136,7 @@ fun FlowApp(
             search = isSearchNavigationEnabled,
             categories = isCategoriesNavigationEnabled,
             downloads = isDownloadsNavigationEnabled,
+            hideSubscriptions = io.github.aedev.flow.ui.focus.LocalFocus.current.hideSubscriptionsNav,
         )
     val navigationTabs = remember(navTabOrder, navigationVisibility) { visibleFlowTabs(navTabOrder, navigationVisibility) }
     val defaultTab = resolveDefaultFlowTab(defaultNavTabIndex, navTabOrder, navigationVisibility)

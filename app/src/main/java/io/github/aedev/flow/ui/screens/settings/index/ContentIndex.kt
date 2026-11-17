@@ -328,8 +328,63 @@ internal object ContentIndex {
             destination = page,
         )
 
+    val hideThumbnails =
+        SettingEntry(
+            key = "content.focus.hide_thumbnails",
+            title = R.string.focus_hide_thumbnails_title,
+            summary = R.string.focus_hide_thumbnails_subtitle,
+            section = R.string.content_settings_header_focus,
+            destination = page,
+        )
+    val blurThumbnails =
+        SettingEntry(
+            key = "content.focus.blur_thumbnails",
+            title = R.string.focus_blur_thumbnails_title,
+            summary = R.string.focus_blur_thumbnails_subtitle,
+            section = R.string.content_settings_header_focus,
+            destination = page,
+        )
+    val hideTopBar =
+        SettingEntry(
+            key = "content.focus.hide_top_bar",
+            title = R.string.focus_hide_top_bar_title,
+            summary = R.string.focus_hide_top_bar_subtitle,
+            section = R.string.content_settings_header_focus,
+            destination = page,
+        )
+    val disableEndCards =
+        SettingEntry(
+            key = "content.focus.disable_end_cards",
+            title = R.string.focus_disable_end_cards_title,
+            summary = R.string.focus_disable_end_cards_subtitle,
+            section = R.string.content_settings_header_focus,
+            destination = page,
+        )
+    val hideSubscriptionsNav =
+        SettingEntry(
+            key = "content.focus.hide_subscriptions_nav",
+            title = R.string.focus_hide_subscriptions_nav_title,
+            summary = R.string.focus_hide_subscriptions_nav_subtitle,
+            section = R.string.content_settings_header_focus,
+            destination = page,
+        )
+    val blackWhite =
+        SettingEntry(
+            key = "content.focus.black_white_mode",
+            title = R.string.focus_black_white_mode_title,
+            summary = R.string.focus_black_white_mode_subtitle,
+            section = R.string.content_settings_header_focus,
+            destination = page,
+        )
+
     val all =
         listOf(
+            hideThumbnails,
+            blurThumbnails,
+            hideTopBar,
+            disableEndCards,
+            hideSubscriptionsNav,
+            blackWhite,
             homeFeed,
             refreshOnReselect,
             homeChips,

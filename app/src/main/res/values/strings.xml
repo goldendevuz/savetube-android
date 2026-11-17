@@ -5112,4 +5112,17 @@
     <string name="watch_time_devices_title">By device this week</string>
     <string name="time_zone_title">Time zone</string>
     <string name="time_zone_description">Where a day starts for the daily limit, and the clock for the bedtime reminder</string>
+    <string name="content_settings_header_focus">Focus</string>
+    <string name="focus_hide_thumbnails_title">Hide thumbnails</string>
+    <string name="focus_hide_thumbnails_subtitle">Hide the picture of every video</string>
+    <string name="focus_blur_thumbnails_title">Blur thumbnails</string>
+    <string name="focus_blur_thumbnails_subtitle">Blur the picture of every video (Android 12 and newer)</string>
+    <string name="focus_hide_top_bar_title">Hide top bar</string>
+    <string name="focus_hide_top_bar_subtitle">Hide the top bar of the Home tab, including the search box</string>
+    <string name="focus_disable_end_cards_title">Disable end cards</string>
+    <string name="focus_disable_end_cards_subtitle">Hide the card with the next video at the end of a video</string>
+    <string name="focus_hide_subscriptions_nav_title">Hide Subscriptions tab</string>
+    <string name="focus_hide_subscriptions_nav_subtitle">Hide Subscriptions from the bottom bar</string>
+    <string name="focus_black_white_mode_title">Black &amp; white mode</string>
+    <string name="focus_black_white_mode_subtitle">Show the whole app in black and white</string>
 </resources>

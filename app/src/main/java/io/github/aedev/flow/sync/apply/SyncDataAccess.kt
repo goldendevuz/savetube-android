@@ -56,6 +56,7 @@ class SyncDataAccess
         private val subscriptions: SubscriptionRepository,
         private val equalizer: EqualizerRepository,
         private val dailyLimitStore: DailyLimitStore,
+        private val focusStore: io.github.aedev.flow.data.focus.FocusStore,
         private val watchStatsStore: WatchStatsStore,
     ) {
         private val likedVideos: LikedVideosRepository by lazy { LikedVideosRepository.getInstance(context) }
@@ -98,7 +99,9 @@ class SyncDataAccess
         suspend fun readSettings(hlc: String): List<CanonicalSetting> {
             val settings = playerPrefs.getExportData()
             // The daily limit lives in its own store, so it is added here.
-            val limit = dailyLimitStore.exportSettings()
+            val limit0 = dailyLimitStore.exportSettings()
+            val focus = focusStore.exportSettings()
+            val limit = io.github.aedev.flow.data.wellbeing.SettingsExport(limit0.booleans + focus.booleans, limit0.ints, limit0.strings)
             val stats = watchStatsStore.exportText()?.let { mapOf(WatchStatsStore.KEY to it) }.orEmpty()
             val withEqualizer =
                 settings.copy(
@@ -113,11 +116,12 @@ class SyncDataAccess
             val settings = SettingsMapper.applyToBackup(merged)
             settings.strings[EqStateJson.KEY]?.let { equalizer.importJson(it) }
             dailyLimitStore.restoreSettings(SettingsExport(settings.booleans, settings.ints, settings.strings))
+            focusStore.restoreSettings(SettingsExport(settings.booleans, settings.ints, settings.strings))
             settings.strings[WatchStatsStore.KEY]?.let { watchStatsStore.mergeIn(it) }
             playerPrefs.restoreData(
                 settings
                     .copy(strings = settings.strings - EqStateJson.KEY)
-                    .filterNames { it !in DailyLimitStore.SETTING_NAMES && it != DailyLimitStore.SHARED_KEY && it != WatchStatsStore.KEY },
+                    .filterNames { it !in DailyLimitStore.SETTING_NAMES && it !in io.github.aedev.flow.data.focus.FocusStore.SETTING_NAMES && it != DailyLimitStore.SHARED_KEY && it != WatchStatsStore.KEY },
             )
         }
 

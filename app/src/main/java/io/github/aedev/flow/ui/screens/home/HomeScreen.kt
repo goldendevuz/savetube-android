@@ -127,6 +127,7 @@ fun HomeScreen(
             SnackbarHost(snackbarHostState, Modifier.floatAboveBottomChrome(LocalFlowBottomInsets.current))
         },
         topBar = {
+            if (!io.github.aedev.flow.ui.focus.LocalFocus.current.hideTopBar) {
             FlowTopBar(
                 title = {
                     Text(
@@ -160,6 +161,7 @@ fun HomeScreen(
                 },
                 trailingAction = { ProfileTopBarAction(onOpenSettings) },
             )
+            }
         },
     ) { padding ->
         Column(

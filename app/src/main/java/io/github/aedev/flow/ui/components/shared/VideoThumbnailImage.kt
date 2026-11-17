@@ -12,6 +12,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
@@ -45,6 +47,8 @@ fun VideoThumbnailImage(
     onModelLoaded: ((Any) -> Unit)? = null,
 ) {
     val quality = LocalThumbnailQuality.current
+    val focus = io.github.aedev.flow.ui.focus.LocalFocus.current
+    if (focus.hideThumbnails) return
     val models =
         remember(videoId, model, quality, portrait) {
             when {
@@ -67,7 +71,7 @@ fun VideoThumbnailImage(
     SafeAsyncImage(
         models = models,
         contentDescription = contentDescription,
-        modifier = modifier,
+        modifier = if (focus.blurThumbnails) modifier.blur(18.dp) else modifier,
         contentScale = contentScale,
         placeholderKey = placeholderKey,
         onImageKey = onImageKey,

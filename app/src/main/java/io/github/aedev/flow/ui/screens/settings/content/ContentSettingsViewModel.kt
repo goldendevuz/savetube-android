@@ -5,6 +5,7 @@ import io.github.aedev.flow.data.local.PlayerPreferences
 import io.github.aedev.flow.data.local.SharedLinkAction
 import io.github.aedev.flow.data.local.WatchedThreshold
 import io.github.aedev.flow.ui.screens.settings.SettingsViewModel
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 /** What shows up in the feeds: Home, Subscriptions, Shorts, Watch later, watched filtering, notes and sharing. */
@@ -13,6 +14,7 @@ class ContentSettingsViewModel
     @Inject
     constructor(
         private val preferences: PlayerPreferences,
+        private val focusStore: io.github.aedev.flow.data.focus.FocusStore,
     ) : SettingsViewModel() {
         val homeFeed = preferences.homeFeedEnabled.asState(true)
         val refreshOnReselect = preferences.refreshHomeOnReselect.asState(true)
@@ -56,6 +58,25 @@ class ContentSettingsViewModel
         val channelNotes = preferences.channelNotesEnabled.asState(true)
         val videoNotes = preferences.videoNotesEnabled.asState(true)
         val shareWithoutText = preferences.shareWithoutText.asState(false)
+
+        val hideThumbnails = focusStore.settings.map { it.hideThumbnails }.asState(false)
+        val blurThumbnails = focusStore.settings.map { it.blurThumbnails }.asState(false)
+        val hideTopBar = focusStore.settings.map { it.hideTopBar }.asState(false)
+        val disableEndCards = focusStore.settings.map { it.disableEndCards }.asState(false)
+        val hideSubscriptionsNav = focusStore.settings.map { it.hideSubscriptionsNav }.asState(false)
+        val blackWhite = focusStore.settings.map { it.blackWhite }.asState(false)
+
+        fun setHideThumbnails(value: Boolean) = write { focusStore.set(io.github.aedev.flow.data.focus.FocusStore.HIDE_THUMBNAILS, value) }
+
+        fun setBlurThumbnails(value: Boolean) = write { focusStore.set(io.github.aedev.flow.data.focus.FocusStore.BLUR_THUMBNAILS, value) }
+
+        fun setHideTopBar(value: Boolean) = write { focusStore.set(io.github.aedev.flow.data.focus.FocusStore.HIDE_TOP_BAR, value) }
+
+        fun setDisableEndCards(value: Boolean) = write { focusStore.set(io.github.aedev.flow.data.focus.FocusStore.DISABLE_END_CARDS, value) }
+
+        fun setBlackWhite(value: Boolean) = write { focusStore.set(io.github.aedev.flow.data.focus.FocusStore.BLACK_WHITE, value) }
+
+        fun setHideSubscriptionsNav(value: Boolean) = write { focusStore.set(io.github.aedev.flow.data.focus.FocusStore.HIDE_SUBSCRIPTIONS_NAV, value) }
 
         fun setHomeFeed(value: Boolean) = write { preferences.setHomeFeedEnabled(value) }
 

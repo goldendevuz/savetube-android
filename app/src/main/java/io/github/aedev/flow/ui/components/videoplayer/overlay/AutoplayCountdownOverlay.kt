@@ -60,6 +60,8 @@ import io.github.aedev.flow.ui.components.shared.thumbnailUrlOrNull
 
 @Composable
 fun AutoplayCountdownOverlay(modifier: Modifier = Modifier) {
+    // With end cards off the countdown still runs, but its card is not drawn.
+    if (io.github.aedev.flow.ui.focus.LocalFocus.current.disableEndCards) return
     val manager = remember { EnhancedPlayerManager.getInstance() }
     val state by manager.autoplayCountdown.collectAsStateWithLifecycle()
 

@@ -100,6 +100,12 @@ object SettingsMapper {
             Entry("daily_limit_minutes", "daily_limit_minutes", Ty.INT),
             Entry("daily_limit_music", "daily_limit_music", Ty.BOOL),
             Entry("time_zone", "time_zone", Ty.STRING),
+            Entry("hide_thumbnails", "hide_thumbnails", Ty.BOOL),
+            Entry("blur_thumbnails", "blur_thumbnails", Ty.BOOL),
+            Entry("hide_top_bar", "hide_top_bar", Ty.BOOL),
+            Entry("disable_end_cards", "disable_end_cards", Ty.BOOL),
+            Entry("black_white_mode", "black_white_mode", Ty.BOOL),
+            Entry("hide_subscriptions_nav", "hide_subscriptions_nav", Ty.BOOL),
             // Each device's count of today, merged on arrival so the limit covers every device.
             Entry("daily_time", "daily_time", Ty.STRING),
             // Each device's published watch statistics, merged on arrival.

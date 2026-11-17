@@ -131,7 +131,8 @@ class LocalDataManager
                         MARQUEE_ENABLED.name,
                         CLASSIC_LOADING_INDICATOR.name,
                     ) +
-                    DailyLimitStore.SETTING_NAMES
+                    DailyLimitStore.SETTING_NAMES +
+                    io.github.aedev.flow.data.focus.FocusStore.SETTING_NAMES
 
             /** Keys in this store a backup leaves out, each with the reason. */
             internal val NOT_BACKED_UP: Map<String, String> =

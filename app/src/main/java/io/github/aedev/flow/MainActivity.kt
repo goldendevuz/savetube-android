@@ -16,6 +16,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.*
+import io.github.aedev.flow.ui.focus.blackAndWhite
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -64,6 +65,9 @@ private const val PORTRAIT_REEL_ASPECT_RATIO = 9f / 16f
 class MainActivity : ComponentActivity() {
     private val links = IncomingLinks()
     private val hardwareKeyboard = HardwareKeyboardState()
+
+    @Inject
+    lateinit var focusStore: io.github.aedev.flow.data.focus.FocusStore
 
     @Inject
     lateinit var originalTitles: OriginalTitleRepository
@@ -207,7 +211,14 @@ class MainActivity : ComponentActivity() {
         lifecycleScope.launch { dataManager.themeSettings(appFontPreferences).collect { storedTheme.value = it } }
 
         setContent {
-            CompositionLocalProvider(LocalHardwareKeyboard provides hardwareKeyboard) {
+            val focus by focusStore.settings.collectAsState(initial = io.github.aedev.flow.data.focus.FocusSettings())
+            CompositionLocalProvider(
+                LocalHardwareKeyboard provides hardwareKeyboard,
+                io.github.aedev.flow.ui.focus.LocalFocus provides focus,
+            ) {
+                androidx.compose.foundation.layout.Box(
+                    androidx.compose.ui.Modifier.blackAndWhite(focus.blackWhite),
+                ) {
                 FlowRoot(
                     storedTheme = storedTheme,
                     links = links,
@@ -218,6 +229,7 @@ class MainActivity : ComponentActivity() {
                     appLock = appLock,
                     onUiRoot = { cachedAppUiRoot = it },
                 )
+                }
             }
         }
     }

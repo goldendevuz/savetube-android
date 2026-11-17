@@ -5286,4 +5286,17 @@
     <string name="watch_time_devices_title">На этой неделе по устройствам</string>
     <string name="time_zone_title">Часовой пояс</string>
     <string name="time_zone_description">Когда начинается день для дневного лимита и по каким часам работает напоминание о сне</string>
+    <string name="content_settings_header_focus">Фокус</string>
+    <string name="focus_hide_thumbnails_title">Скрыть превью</string>
+    <string name="focus_hide_thumbnails_subtitle">Скрыть картинку у каждого видео</string>
+    <string name="focus_blur_thumbnails_title">Размыть превью</string>
+    <string name="focus_blur_thumbnails_subtitle">Размыть картинку у каждого видео (Android 12 и новее)</string>
+    <string name="focus_hide_top_bar_title">Скрыть верхнюю панель</string>
+    <string name="focus_hide_top_bar_subtitle">Скрыть верхнюю панель вкладки «Главная» вместе с поиском</string>
+    <string name="focus_disable_end_cards_title">Отключить конечные карточки</string>
+    <string name="focus_disable_end_cards_subtitle">Скрыть карточку со следующим видео в конце видео</string>
+    <string name="focus_hide_subscriptions_nav_title">Скрыть вкладку «Подписки»</string>
+    <string name="focus_hide_subscriptions_nav_subtitle">Скрыть «Подписки» на нижней панели</string>
+    <string name="focus_black_white_mode_title">Чёрно-белый режим</string>
+    <string name="focus_black_white_mode_subtitle">Показывать всё приложение в чёрно-белом цвете</string>
 </resources>

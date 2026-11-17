@@ -73,6 +73,8 @@ data class NavigationVisibility(
     val search: Boolean = false,
     val categories: Boolean = false,
     val downloads: Boolean = false,
+    /** The Focus option that hides the Subscriptions tab. Library stays, so Notifications and Settings stay reachable. */
+    val hideSubscriptions: Boolean = false,
 )
 
 /**
@@ -88,7 +90,7 @@ fun visibleFlowTabs(
             if (visibility.home) add(FlowTab.Home)
             if (visibility.shorts) add(FlowTab.Shorts)
             if (visibility.music) add(FlowTab.Music)
-            add(FlowTab.Subscriptions)
+            if (!visibility.hideSubscriptions) add(FlowTab.Subscriptions)
             add(FlowTab.Library)
             if (visibility.search) add(FlowTab.Search)
             if (visibility.categories) add(FlowTab.Explore)
