@@ -5299,4 +5299,11 @@
     <string name="focus_hide_subscriptions_nav_subtitle">Скрыть «Подписки» на нижней панели</string>
     <string name="focus_black_white_mode_title">Чёрно-белый режим</string>
     <string name="focus_black_white_mode_subtitle">Показывать всё приложение в чёрно-белом цвете</string>
+    <string name="streak_title">Серия дней</string>
+    <string name="streak_unit">дн. подряд в рамках лимита</string>
+    <string name="streak_best">Рекорд: %1$d</string>
+    <string name="streak_next">Следующая награда: %1$d дн.</string>
+    <string name="streak_all">Все награды получены</string>
+    <string name="streak_milestone_title">Серия: %1$d дн.</string>
+    <string name="streak_milestone_body">Вы уложились в дневной лимит %1$d дн. подряд.</string>
 </resources>

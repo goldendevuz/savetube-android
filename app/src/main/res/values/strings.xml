@@ -5125,4 +5125,11 @@
     <string name="focus_hide_subscriptions_nav_subtitle">Hide Subscriptions from the bottom bar</string>
     <string name="focus_black_white_mode_title">Black &amp; white mode</string>
     <string name="focus_black_white_mode_subtitle">Show the whole app in black and white</string>
+    <string name="streak_title">Streak</string>
+    <string name="streak_unit">days in a row within your limit</string>
+    <string name="streak_best">Best: %1$d</string>
+    <string name="streak_next">Next badge at %1$d days</string>
+    <string name="streak_all">Every badge earned</string>
+    <string name="streak_milestone_title">%1$d-day streak</string>
+    <string name="streak_milestone_body">You kept to your daily limit %1$d days in a row.</string>
 </resources>

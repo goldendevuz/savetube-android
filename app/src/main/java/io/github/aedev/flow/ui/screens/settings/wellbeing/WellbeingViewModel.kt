@@ -12,6 +12,7 @@ import io.github.aedev.flow.data.stats.VideoStatsRecorder
 import io.github.aedev.flow.data.wellbeing.DailyLimitPolicy
 import io.github.aedev.flow.data.wellbeing.DailyLimitSettings
 import io.github.aedev.flow.data.wellbeing.DailyLimitStore
+import io.github.aedev.flow.data.wellbeing.LimitStreak
 import io.github.aedev.flow.data.wellbeing.TimeZones
 import io.github.aedev.flow.data.wellbeing.WatchStatsStore
 import io.github.aedev.flow.data.wellbeing.WatchTimeMeasurer
@@ -129,6 +130,13 @@ class WellbeingViewModel
         /** Today's count of all devices together, and each device's share of it. */
         val dailyTally = dailyLimitStore.tally.asState(null)
         val dailyDevices = dailyLimitStore.devices.asState(emptyList())
+
+        /** The daily limit streak: days in a row now, and the record it is kept in. */
+        val streak = dailyLimitStore.streak.asState(null)
+        val streakDays =
+            combine(dailyLimitStore.streak, dailyLimitStore.timeZone) { saved, zone ->
+                saved?.days(LocalDate.now(zone).toEpochDay()) ?: 0
+            }.asState(0)
 
         private val _pendingLimit = MutableStateFlow<PendingLimitChange?>(null)
 

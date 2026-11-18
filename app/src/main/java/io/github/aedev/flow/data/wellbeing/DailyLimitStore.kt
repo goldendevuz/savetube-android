@@ -59,6 +59,18 @@ class DailyLimitStore
             }
         }
 
+        /** The daily limit streak (see [LimitStreak]), or null before the limit was ever watched. */
+        val streak: Flow<LimitStreak?> = context.dataStore.data.map { prefs -> LimitStreak.parse(prefs[STREAK]) }
+
+        /** Reads the saved streak, lets [transform] change it, and saves the result if it differs. */
+        suspend fun updateStreak(transform: (LimitStreak?) -> LimitStreak) {
+            context.dataStore.edit { prefs ->
+                val saved = LimitStreak.parse(prefs[STREAK])
+                val next = transform(saved)
+                if (next != saved) prefs[STREAK] = next.encode()
+            }
+        }
+
         /** Each device's share of the newest day, the biggest first, with this device marked. */
         val devices: Flow<List<SharedTally.DeviceShare>> =
             context.dataStore.data.map { prefs ->
@@ -92,6 +104,7 @@ class DailyLimitStore
                 buildMap {
                     prefs[SHARED]?.let { put(SHARED.name, it) }
                     prefs[TIME_ZONE]?.let { put(TIME_ZONE.name, it) }
+                    prefs[STREAK]?.let { put(STREAK.name, it) }
                 }
             return SettingsExport(booleans, ints, strings)
         }
@@ -101,12 +114,17 @@ class DailyLimitStore
             val theirs = incoming.strings[SHARED.name]
             val hasSettings = incoming.booleans.keys.any { it in SETTING_NAMES } || incoming.ints.keys.any { it in SETTING_NAMES }
             val zone = incoming.strings[TIME_ZONE.name]
-            if (!hasSettings && theirs == null && zone == null) return
+            val streak = incoming.strings[STREAK.name]
+            if (!hasSettings && theirs == null && zone == null && streak == null) return
             context.dataStore.edit { prefs ->
                 incoming.booleans[ENABLED.name]?.let { prefs[ENABLED] = it }
                 incoming.booleans[COUNT_MUSIC.name]?.let { prefs[COUNT_MUSIC] = it }
                 incoming.ints[MINUTES.name]?.let { prefs[MINUTES] = DailyLimitPolicy.validMinutes(it) }
                 zone?.let { prefs[TIME_ZONE] = TimeZones.zoneOf(it).id }
+                if (streak != null) {
+                    // a broken day is never forgotten: the arriving record is merged into this device's own
+                    LimitStreak.merge(LimitStreak.parse(prefs[STREAK]), LimitStreak.parse(streak))?.let { prefs[STREAK] = it.encode() }
+                }
                 if (theirs != null) {
                     val merged = SharedTally.merge(SharedTally.parse(prefs[SHARED]), SharedTally.parse(theirs))
                     prefs[SHARED] = SharedTally.encode(merged)
@@ -133,6 +151,7 @@ class DailyLimitStore
             private val TALLY_REACHED = booleanPreferencesKey("daily_tally_reached")
             private val TIME_ZONE = stringPreferencesKey("time_zone")
             private val SHARED = stringPreferencesKey("daily_time")
+            private val STREAK = stringPreferencesKey("limit_streak")
             /** The name this device's id is kept under. */
             const val DEVICE_ID_KEY = "daily_limit_device_id"
             private val DEVICE_ID = stringPreferencesKey(DEVICE_ID_KEY)
@@ -141,7 +160,7 @@ class DailyLimitStore
             val SHARED_KEY: String = SHARED.name
 
             /** The keys a settings backup carries. */
-            val SETTING_NAMES: Set<String> = setOf(ENABLED.name, MINUTES.name, COUNT_MUSIC.name, TIME_ZONE.name)
+            val SETTING_NAMES: Set<String> = setOf(ENABLED.name, MINUTES.name, COUNT_MUSIC.name, TIME_ZONE.name, STREAK.name)
 
             /** Today's running count, which a backup leaves behind. */
             val TALLY_NAMES: Set<String> =

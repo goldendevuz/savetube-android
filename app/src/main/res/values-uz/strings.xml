@@ -4961,4 +4961,11 @@
     <string name="focus_hide_subscriptions_nav_subtitle">Obunalarni pastki paneldan yashirish</string>
     <string name="focus_black_white_mode_title">Oq-qora rejim</string>
     <string name="focus_black_white_mode_subtitle">Butun ilovani oq-qora koʻrsatish</string>
+    <string name="streak_title">Ketma-ket kunlar</string>
+    <string name="streak_unit">kun ketma-ket limit ichida</string>
+    <string name="streak_best">Eng yaxshi: %1$d</string>
+    <string name="streak_next">Keyingi nishon: %1$d kun</string>
+    <string name="streak_all">Barcha nishonlar olingan</string>
+    <string name="streak_milestone_title">%1$d kun ketma-ket</string>
+    <string name="streak_milestone_body">Kunlik limitingizda %1$d kun ketma-ket qoldingiz.</string>
 </resources>

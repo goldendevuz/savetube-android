@@ -27,6 +27,7 @@ import io.github.aedev.flow.network.VpnStateMonitor
 import io.github.aedev.flow.notification.AutoBackupWorker
 import io.github.aedev.flow.notification.BackgroundCheckScheduler
 import io.github.aedev.flow.notification.BreakReminderTimer
+import io.github.aedev.flow.data.wellbeing.LimitStreakKeeper
 import io.github.aedev.flow.data.wellbeing.StatsPublisher
 import io.github.aedev.flow.notification.DailyLimitGuard
 import io.github.aedev.flow.notification.NotificationHelper
@@ -111,6 +112,9 @@ class FlowApplication :
     lateinit var statsPublisher: StatsPublisher
 
     @Inject
+    lateinit var limitStreakKeeper: LimitStreakKeeper
+
+    @Inject
     lateinit var appLock: AppLock
 
     @Inject
@@ -141,6 +145,7 @@ class FlowApplication :
         breakReminderTimer.install()
         dailyLimitGuard.install()
         statsPublisher.install()
+        limitStreakKeeper.install()
         appLock.install()
         YouTube.cacheDirectory = cacheDir.resolve("innertube_http_cache")
 

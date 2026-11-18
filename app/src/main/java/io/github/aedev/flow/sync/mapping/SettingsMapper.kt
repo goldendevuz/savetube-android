@@ -100,6 +100,8 @@ object SettingsMapper {
             Entry("daily_limit_minutes", "daily_limit_minutes", Ty.INT),
             Entry("daily_limit_music", "daily_limit_music", Ty.BOOL),
             Entry("time_zone", "time_zone", Ty.STRING),
+            // The daily limit streak, one JSON text; merged into the device's own copy on arrival.
+            Entry("limit_streak", "limit_streak", Ty.STRING),
             Entry("hide_thumbnails", "hide_thumbnails", Ty.BOOL),
             Entry("blur_thumbnails", "blur_thumbnails", Ty.BOOL),
             Entry("hide_top_bar", "hide_top_bar", Ty.BOOL),
