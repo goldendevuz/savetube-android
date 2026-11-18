@@ -5132,4 +5132,13 @@
     <string name="streak_all">Every badge earned</string>
     <string name="streak_milestone_title">%1$d-day streak</string>
     <string name="streak_milestone_body">You kept to your daily limit %1$d days in a row.</string>
+    <string name="goal_title">Today's goal</string>
+    <string name="goal_hint">One thing you want to get done today</string>
+    <string name="goal_placeholder">Write today's goal</string>
+    <string name="goal_clear">Clear</string>
+    <string name="hours_title">When you watch</string>
+    <string name="hours_peak">Most of your watching happens at %1$s</string>
+    <string name="hours_none">Nothing counted yet. It fills in as you watch.</string>
+    <string name="hours_total">%1$s on this phone in the last 28 days</string>
+    <string name="session_chip">Session %1$d min</string>
 </resources>

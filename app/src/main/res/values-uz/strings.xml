@@ -4968,4 +4968,13 @@
     <string name="streak_all">Barcha nishonlar olingan</string>
     <string name="streak_milestone_title">%1$d kun ketma-ket</string>
     <string name="streak_milestone_body">Kunlik limitingizda %1$d kun ketma-ket qoldingiz.</string>
+    <string name="goal_title">Bugungi maqsad</string>
+    <string name="goal_hint">Bugun bajarmoqchi boʻlgan bitta ish</string>
+    <string name="goal_placeholder">Bugungi maqsadni yozing</string>
+    <string name="goal_clear">Tozalash</string>
+    <string name="hours_title">Qaysi soatda koʻrasiz</string>
+    <string name="hours_peak">Koʻproq tomosha %1$s da boʻladi</string>
+    <string name="hours_none">Hali hisoblanmagan. Tomosha qilgan sari toʻlib boradi.</string>
+    <string name="hours_total">Shu telefonda oxirgi 28 kunda %1$s</string>
+    <string name="session_chip">Seans %1$d daq</string>
 </resources>

@@ -72,6 +72,8 @@ internal fun WellbeingScreen(
     val dailyDevices by viewModel.dailyDevices.collectAsStateWithLifecycle()
     val streak by viewModel.streak.collectAsStateWithLifecycle()
     val streakDays by viewModel.streakDays.collectAsStateWithLifecycle()
+    val goal by viewModel.goal.collectAsStateWithLifecycle()
+    val hours by viewModel.hours.collectAsStateWithLifecycle()
     val pendingLimit by viewModel.pendingLimit.collectAsStateWithLifecycle()
     var dialog by rememberSaveable { mutableStateOf<WellbeingDialog?>(null) }
     var pending by rememberSaveable { mutableStateOf<Reminder?>(null) }
@@ -195,6 +197,8 @@ internal fun WellbeingScreen(
             item("wellbeing.daily_today") { DailyLimitToday(dailyLimit, dailyTally, dailyDevices) }
             item("wellbeing.streak") { StreakCard(days = streakDays, best = streak?.best ?: 0) }
         }
+        item("wellbeing.goal") { GoalCard(goal = goal, onSave = viewModel::setGoal) }
+        item("wellbeing.hours") { HoursCard(hours) }
     }
 
     pendingLimit?.let { pending ->

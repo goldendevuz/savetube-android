@@ -9,11 +9,13 @@ import io.github.aedev.flow.data.local.LocalDataManager
 import io.github.aedev.flow.data.local.ViewHistory
 import io.github.aedev.flow.data.recommendation.music.MusicBrainEngine
 import io.github.aedev.flow.data.stats.VideoStatsRecorder
+import io.github.aedev.flow.data.wellbeing.DailyGoal
 import io.github.aedev.flow.data.wellbeing.DailyLimitPolicy
 import io.github.aedev.flow.data.wellbeing.DailyLimitSettings
 import io.github.aedev.flow.data.wellbeing.DailyLimitStore
 import io.github.aedev.flow.data.wellbeing.LimitStreak
 import io.github.aedev.flow.data.wellbeing.TimeZones
+import io.github.aedev.flow.data.wellbeing.WatchHours
 import io.github.aedev.flow.data.wellbeing.WatchStatsStore
 import io.github.aedev.flow.data.wellbeing.WatchTimeMeasurer
 import io.github.aedev.flow.notification.ReminderManager
@@ -130,6 +132,24 @@ class WellbeingViewModel
         /** Today's count of all devices together, and each device's share of it. */
         val dailyTally = dailyLimitStore.tally.asState(null)
         val dailyDevices = dailyLimitStore.devices.asState(emptyList())
+
+        /** Today's goal, or null when there is none for today. */
+        val goal =
+            combine(dailyLimitStore.goal, dailyLimitStore.timeZone) { saved, zone ->
+                DailyGoal.forDay(saved, LocalDate.now(zone).toEpochDay())
+            }.asState(null)
+
+        fun setGoal(
+            text: String,
+            done: Boolean,
+        ) = write {
+            val trimmed = text.trim()
+            val today = LocalDate.now(dailyLimitStore.zone()).toEpochDay()
+            dailyLimitStore.setGoal(DailyGoal.write(today, trimmed, trimmed.isNotEmpty() && done, System.currentTimeMillis()))
+        }
+
+        /** When this phone is used, by hour of day, over the last 28 days. */
+        val hours = dailyLimitStore.hours.map { WatchHours.summarize(it) }.asState(WatchHours.Summary(List(24) { 0L }, 0L, null))
 
         /** The daily limit streak: days in a row now, and the record it is kept in. */
         val streak = dailyLimitStore.streak.asState(null)

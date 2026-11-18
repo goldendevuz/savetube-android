@@ -71,6 +71,26 @@ class DailyLimitStore
             }
         }
 
+        /** Today's goal record (see [DailyGoal]), or null when none was ever written. */
+        val goal: Flow<DailyGoal?> = context.dataStore.data.map { prefs -> DailyGoal.parse(prefs[GOAL]) }
+
+        suspend fun setGoal(goal: DailyGoal) {
+            context.dataStore.edit { prefs -> prefs[GOAL] = DailyGoal.merge(DailyGoal.parse(prefs[GOAL]), goal)?.encode() ?: goal.encode() }
+        }
+
+        /** This device's playing time by day and hour (see [WatchHours]); never synced. */
+        val hours: Flow<Map<Long, List<Long>>> = context.dataStore.data.map { prefs -> WatchHours.parse(prefs[HOURS]) }
+
+        /** Adds playing time, as (epoch day, hour, ms), to the hours record. */
+        suspend fun addHours(entries: List<Triple<Long, Int, Long>>) {
+            if (entries.isEmpty()) return
+            context.dataStore.edit { prefs ->
+                var ledger = WatchHours.parse(prefs[HOURS])
+                for ((day, hour, ms) in entries) ledger = WatchHours.add(ledger, day, hour, ms)
+                prefs[HOURS] = WatchHours.encode(ledger)
+            }
+        }
+
         /** Each device's share of the newest day, the biggest first, with this device marked. */
         val devices: Flow<List<SharedTally.DeviceShare>> =
             context.dataStore.data.map { prefs ->
@@ -105,6 +125,7 @@ class DailyLimitStore
                     prefs[SHARED]?.let { put(SHARED.name, it) }
                     prefs[TIME_ZONE]?.let { put(TIME_ZONE.name, it) }
                     prefs[STREAK]?.let { put(STREAK.name, it) }
+                    prefs[GOAL]?.let { put(GOAL.name, it) }
                 }
             return SettingsExport(booleans, ints, strings)
         }
@@ -115,12 +136,17 @@ class DailyLimitStore
             val hasSettings = incoming.booleans.keys.any { it in SETTING_NAMES } || incoming.ints.keys.any { it in SETTING_NAMES }
             val zone = incoming.strings[TIME_ZONE.name]
             val streak = incoming.strings[STREAK.name]
-            if (!hasSettings && theirs == null && zone == null && streak == null) return
+            val goal = incoming.strings[GOAL.name]
+            if (!hasSettings && theirs == null && zone == null && streak == null && goal == null) return
             context.dataStore.edit { prefs ->
                 incoming.booleans[ENABLED.name]?.let { prefs[ENABLED] = it }
                 incoming.booleans[COUNT_MUSIC.name]?.let { prefs[COUNT_MUSIC] = it }
                 incoming.ints[MINUTES.name]?.let { prefs[MINUTES] = DailyLimitPolicy.validMinutes(it) }
                 zone?.let { prefs[TIME_ZONE] = TimeZones.zoneOf(it).id }
+                if (goal != null) {
+                    // the copy with the newer edit time wins
+                    DailyGoal.merge(DailyGoal.parse(prefs[GOAL]), DailyGoal.parse(goal))?.let { prefs[GOAL] = it.encode() }
+                }
                 if (streak != null) {
                     // a broken day is never forgotten: the arriving record is merged into this device's own
                     LimitStreak.merge(LimitStreak.parse(prefs[STREAK]), LimitStreak.parse(streak))?.let { prefs[STREAK] = it.encode() }
@@ -152,6 +178,8 @@ class DailyLimitStore
             private val TIME_ZONE = stringPreferencesKey("time_zone")
             private val SHARED = stringPreferencesKey("daily_time")
             private val STREAK = stringPreferencesKey("limit_streak")
+            private val GOAL = stringPreferencesKey("daily_goal")
+            private val HOURS = stringPreferencesKey("watch_hours")
             /** The name this device's id is kept under. */
             const val DEVICE_ID_KEY = "daily_limit_device_id"
             private val DEVICE_ID = stringPreferencesKey(DEVICE_ID_KEY)
@@ -160,7 +188,7 @@ class DailyLimitStore
             val SHARED_KEY: String = SHARED.name
 
             /** The keys a settings backup carries. */
-            val SETTING_NAMES: Set<String> = setOf(ENABLED.name, MINUTES.name, COUNT_MUSIC.name, TIME_ZONE.name, STREAK.name)
+            val SETTING_NAMES: Set<String> = setOf(ENABLED.name, MINUTES.name, COUNT_MUSIC.name, TIME_ZONE.name, STREAK.name, GOAL.name)
 
             /** Today's running count, which a backup leaves behind. */
             val TALLY_NAMES: Set<String> =
@@ -174,6 +202,8 @@ class DailyLimitStore
                     DEVICE_ID.name,
                     // The published watch statistics (see WatchStatsStore), rebuilt from the ledger.
                     "watch_stats",
+                    // This device's playing time by hour of day (see WatchHours).
+                    HOURS.name,
                 )
         }
     }

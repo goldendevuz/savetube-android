@@ -5306,4 +5306,13 @@
     <string name="streak_all">Все награды получены</string>
     <string name="streak_milestone_title">Серия: %1$d дн.</string>
     <string name="streak_milestone_body">Вы уложились в дневной лимит %1$d дн. подряд.</string>
+    <string name="goal_title">Цель на сегодня</string>
+    <string name="goal_hint">Одно дело, которое хотите сделать сегодня</string>
+    <string name="goal_placeholder">Напишите цель на сегодня</string>
+    <string name="goal_clear">Очистить</string>
+    <string name="hours_title">Когда вы смотрите</string>
+    <string name="hours_peak">Больше всего вы смотрите в %1$s</string>
+    <string name="hours_none">Пока ничего не посчитано. Заполнится по мере просмотра.</string>
+    <string name="hours_total">%1$s на этом телефоне за последние 28 дней</string>
+    <string name="session_chip">Сеанс %1$d мин</string>
 </resources>

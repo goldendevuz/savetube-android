@@ -102,6 +102,8 @@ object SettingsMapper {
             Entry("time_zone", "time_zone", Ty.STRING),
             // The daily limit streak, one JSON text; merged into the device's own copy on arrival.
             Entry("limit_streak", "limit_streak", Ty.STRING),
+            // Today's goal, one JSON text; the copy with the newer edit time wins.
+            Entry("daily_goal", "daily_goal", Ty.STRING),
             Entry("hide_thumbnails", "hide_thumbnails", Ty.BOOL),
             Entry("blur_thumbnails", "blur_thumbnails", Ty.BOOL),
             Entry("hide_top_bar", "hide_top_bar", Ty.BOOL),

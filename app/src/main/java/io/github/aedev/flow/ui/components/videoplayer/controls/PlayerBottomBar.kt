@@ -33,6 +33,7 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -176,6 +177,8 @@ internal fun PlayerBottomBar(
                     isLayerVisible = isLayerVisible,
                 )
 
+                SessionPill(height = metrics.pillHeight)
+
                 if (currentChapter != null) {
                     Surface(
                         onClick = actions.onChapterClick,
@@ -250,5 +253,24 @@ internal fun PlayerBottomBar(
             isScrubbing = isScrubbing,
             seekbarZIndex = 2f,
         )
+    }
+}
+
+/** How long it has been playing since the last break of five minutes, shown once it is a minute or more. */
+@Composable
+private fun SessionPill(height: androidx.compose.ui.unit.Dp) {
+    val minutes by io.github.aedev.flow.data.wellbeing.SessionClock.minutes
+        .collectAsStateWithLifecycle()
+    if (minutes < 1) return
+    Surface(color = PlayerScrimAffordance, shape = CircleShape, modifier = Modifier.height(height)) {
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(horizontal = 12.dp)) {
+            Text(
+                text = stringResource(R.string.session_chip, minutes),
+                style = MaterialTheme.typography.labelSmall,
+                color = PlayerScrimContentSecondary,
+                fontWeight = FontWeight.Medium,
+                maxLines = 1,
+            )
+        }
     }
 }
